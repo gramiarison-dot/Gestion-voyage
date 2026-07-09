@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoyageReserv - Réservez votre trajet</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f6f9fc 0%, #eef2f7 100%);
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        /* Navbar moderne */
+        .navbar {
+            background: rgba(10, 25, 47, 0.95) !important;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            padding: 0.8rem 0;
+        }
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.7rem;
+            background: linear-gradient(135deg, #fff, #90e0ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent !important;
+            letter-spacing: -0.3px;
+        }
+        .nav-link {
+            font-weight: 500;
+            margin: 0 5px;
+            transition: 0.2s;
+            border-radius: 40px;
+        }
+        .nav-link:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-2px);
+        }
+
+        /* Hero section avec carte Madagascar */
+        .hero {
+            background: linear-gradient(105deg, #0a2b3e 0%, #1b4f72 100%);
+            border-radius: 0 0 50px 50px;
+            padding: 3rem 1.5rem;
+            margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        .hero::before {
+            content: "🌍";
+            font-size: 18rem;
+            position: absolute;
+            bottom: -30px;
+            right: -30px;
+            opacity: 0.05;
+            pointer-events: none;
+            transform: rotate(-5deg);
+        }
+        .hero-content h1 {
+            font-weight: 800;
+            font-size: 3rem;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+        }
+        .hero-badge {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(8px);
+            border-radius: 60px;
+            padding: 6px 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Mini carte dans l'en-tête */
+        .mini-map-container {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
+            border-radius: 30px;
+            padding: 1rem;
+            transition: 0.3s;
+        }
+        .mini-map-container .mini-map {
+            height: 200px;
+            width: 100%;
+            border-radius: 16px;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .route-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.7rem;
+            background: rgba(0,0,0,0.4);
+            border-radius: 40px;
+            padding: 5px 10px;
+            color: #ffd966;
+        }
+        .route-info span {
+            color: #ffd966;
+        }
+
+        /* Cartes voyages avec carte intégrée */
+        .trip-card {
+            border: none;
+            border-radius: 32px;
+            overflow: hidden;
+            background: white;
+            transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 0 15px 30px -12px rgba(0,0,0,0.1);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .trip-card:hover {
+            transform: translateY(-10px) scale(1.01);
+            box-shadow: 0 25px 40px -12px rgba(0,0,0,0.25);
+        }
+        .card-header-bus {
+            background: linear-gradient(120deg, #f8fafc, #ffffff);
+            padding: 1rem 1.2rem;
+            border-bottom: 2px solid #eef2ff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .bus-icon {
+            font-size: 2rem;
+            color: #0d6efd;
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.1));
+        }
+        
+        /* Carte du voyage dans la carte */
+        .trip-map-container {
+            padding: 10px 15px;
+            background: #f8fafc;
+        }
+        .trip-map {
+            height: 180px;
+            width: 100%;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .trip-map-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 0.75rem;
+            color: #64748b;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .trip-map-stats .stat-item {
+            background: white;
+            padding: 2px 12px;
+            border-radius: 50px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .trip-map-stats .stat-item i {
+            color: #3b82f6;
+        }
+
+        .trip-price {
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: #0a5c2e;
+            letter-spacing: -1px;
+        }
+        .btn-reserve {
+            background: linear-gradient(95deg, #0d6efd, #0b5ed7);
+            border: none;
+            border-radius: 40px;
+            padding: 10px 0;
+            font-weight: 600;
+            transition: 0.2s;
+            width: 100%;
+            color: white;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+        }
+        .btn-reserve:hover {
+            transform: scale(0.97);
+            background: linear-gradient(95deg, #0b5ed7, #0a58ca);
+            box-shadow: 0 8px 18px rgba(13,110,253,0.3);
+            color: white;
+        }
+        .btn-reserve:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Publicité voyages + stratégie point à point */
+        .ad-section {
+            background: linear-gradient(120deg, #fff9e0, #fff0c0);
+            border-radius: 40px;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            border-left: 8px solid #ffc107;
+        }
+        .route-summary {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .route-step {
+            background: white;
+            border-radius: 60px;
+            padding: 0.5rem 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            flex: 1;
+            min-width: 120px;
+            transition: 0.2s;
+        }
+        .route-step i {
+            font-size: 1.3rem;
+        }
+        .route-step .step-city {
+            font-weight: bold;
+        }
+        .route-step:hover {
+            transform: translateY(-3px);
+            background: #ffe5b4;
+        }
+
+        /* Statut du voyage */
+        .trip-status {
+            font-size: 0.7rem;
+            padding: 2px 12px;
+            border-radius: 50px;
+            font-weight: 600;
+        }
+        .trip-status.confirmed {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        .trip-status.pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        .trip-status.cancelled {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* Réseaux sociaux multicolores */
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        .social-icons a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            font-size: 1.6rem;
+            transition: 0.2s;
+            text-decoration: none;
+            background: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .social-icons a.whatsapp { background: #25D366; color: white; }
+        .social-icons a.facebook { background: #1877F2; color: white; }
+        .social-icons a.contact { background: linear-gradient(135deg, #FFC107, #DC3545); color: white; }
+        .social-icons a:hover { transform: scale(1.1) rotate(3deg); }
+
+        footer {
+            background: #0f1722;
+            color: #94a3b8;
+            border-radius: 40px 40px 0 0;
+            margin-top: 4rem;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        /* Légende des couleurs sur la carte */
+        .map-legend-mini {
+            display: flex;
+            gap: 12px;
+            margin-top: 5px;
+            flex-wrap: wrap;
+            font-size: 0.65rem;
+        }
+        .map-legend-mini .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .legend-color-mini {
+            width: 20px;
+            height: 3px;
+            border-radius: 3px;
+        }
+        .legend-color-mini.green { background: #22c55e; }
+        .legend-color-mini.orange { background: #f59e0b; }
+        .legend-color-mini.red { background: #ef4444; }
+
+        @media (max-width: 768px) {
+            .hero-content h1 { font-size: 2rem; }
+            .mini-map-container .mini-map { height: 150px; }
+            .trip-map { height: 150px; }
+            .route-summary { flex-direction: column; align-items: center; }
+            .trip-map-stats { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar dynamique -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-bus-simple me-2"></i> VoyageReserv
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto" id="navLinks">
+                    <!-- rempli par JS -->
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero avec mini carte Madagascar -->
+    <div class="hero">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 hero-content">
+                    <span class="hero-badge mb-3">
+                        <i class="fas fa-shield-alt"></i> Voyages sécurisés
+                    </span>
+                    <h1 class="display-4 fw-bold">Voyagez malin, <br>réservez en un clic</h1>
+                    <p class="lead mt-3">Des bus confortables, des prix imbattables. Choisissez votre destination à Madagascar.</p>
+                </div>
+                <div class="col-md-6">
+                    <div class="mini-map-container">
+                        <div id="heroMap" class="mini-map"></div>
+                        <div class="route-info">
+                            <span><i class="fas fa-map-marker-alt"></i> Antananarivo</span>
+                            <span><i class="fas fa-arrow-right"></i> <span id="heroDistance">---</span> km</span>
+                            <span><i class="fas fa-flag-checkered"></i> <span id="heroDestination">Toamasina</span></span>
+                        </div>
+                        <div class="map-legend-mini">
+                            <span class="legend-item"><span class="legend-color-mini green"></span> Confirmé</span>
+                            <span class="legend-item"><span class="legend-color-mini orange"></span> En attente</span>
+                            <span class="legend-item"><span class="legend-color-mini red"></span> Annulé</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+            <h2 class="fw-bold"><i class="fas fa-map-marked-alt text-primary me-2"></i> Voyages disponibles</h2>
+            <span class="badge bg-secondary rounded-pill px-3 py-2" id="tripCount">0 trajets</span>
+        </div>
+
+        <!-- PUBLICITÉ + STRATÉGIE POINT À POINT -->
+        <div class="ad-section">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h4><i class="fas fa-gem text-warning"></i> Offre spéciale été 2025</h4>
+                    <p>-20% sur tous les trajets longue distance avec le code <strong class="bg-warning px-2 py-1 rounded">ETE2025</strong>. Réservation anticipée recommandée.</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <span class="badge bg-danger fs-6 p-2"><i class="fas fa-tags"></i> Jusqu'à -30%</span>
+                </div>
+            </div>
+            <hr class="bg-warning">
+            <div class="route-summary">
+                <div class="route-step"><i class="fas fa-city text-primary"></i><span class="step-city">Tana ↔ Toamasina</span><small> 215 km</small></div>
+                <div class="route-step"><i class="fas fa-mountain text-success"></i><span class="step-city">Tana ↔ Mahajanga</span><small> 570 km</small></div>
+                <div class="route-step"><i class="fas fa-umbrella-beach text-info"></i><span class="step-city">Tana ↔ Toliara</span><small> 935 km</small></div>
+                <div class="route-step"><i class="fas fa-champagne-glasses text-warning"></i><span class="step-city">Tana ↔ Antsiranana</span><small> 1075 km</small></div>
+            </div>
+            <div class="text-center mt-2">
+                <i class="fas fa-route text-danger me-1"></i> <strong>Stratégie point à point</strong> : profitez des correspondances optimales sans changement de billet.
+            </div>
+        </div>
+
+        <div id="tripsList" class="row g-4">
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2">Chargement des voyages...</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <i class="fas fa-bus me-1"></i> VoyageReserv – Voyages en bus simplifiés<br>
+            <small>© 2025 – Réservation en temps réel</small>
+            <div class="social-icons">
+                <a href="https://wa.me/33612345678" class="whatsapp" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                <a href="https://facebook.com/voyagereserv" class="facebook" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                <a href="mailto:contact@voyagereserv.fr" class="contact"><i class="fas fa-envelope"></i></a>
+            </div>
+            <p class="mt-3 mb-0"><i class="fas fa-headset"></i> Service client 7j/7 – 09 70 80 90 10</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // ===========================================
+        // COORDONNÉES DES VILLES DE MADAGASCAR
+        // ===========================================
+        const cityCoords = {
+            'Antananarivo': [-18.8792, 47.5079],
+            'Toamasina': [-18.1447, 49.3958],
+            'Mahajanga': [-15.7167, 46.3167],
+            'Toliara': [-23.35, 43.6667],
+            'Antsiranana': [-12.2781, 49.2917],
+            'Fianarantsoa': [-21.4542, 47.0875],
+            'Moramanga': [-18.9497, 48.2300],
+            'Antsirabe': [-19.8667, 47.0333],
+            'Morondava': [-20.2889, 44.3181],
+        };
+
+        // Distances entre villes (en km)
+        const distances = {
+            'Antananarivo-Toamasina': 215,
+            'Antananarivo-Mahajanga': 570,
+            'Antananarivo-Toliara': 935,
+            'Antananarivo-Antsiranana': 1075,
+            'Antananarivo-Fianarantsoa': 415,
+            'Antananarivo-Antsirabe': 170,
+            'Antananarivo-Morondava': 700,
+        };
+
+        function getCoords(cityName) {
+            if (!cityName) return null;
+            const trimmed = cityName.trim();
+            if (cityCoords[trimmed]) return cityCoords[trimmed];
+            const lower = trimmed.toLowerCase();
+            for (const key in cityCoords) {
+                if (key.toLowerCase() === lower) return cityCoords[key];
+            }
+            for (const key in cityCoords) {
+                if (lower.includes(key.toLowerCase()) || key.toLowerCase().includes(lower)) {
+                    return cityCoords[key];
+                }
+            }
+            return null;
+        }
+
+        function getDistance(departure, destination) {
+            const key1 = `${departure}-${destination}`;
+            const key2 = `${destination}-${departure}`;
+            return distances[key1] || distances[key2] || 'N/A';
+        }
+
+        // ===========================================
+        // INIT HERO MAP
+        // ===========================================
+        let heroMap = null;
+
+        function initHeroMap() {
+            heroMap = L.map('heroMap').setView([-18.8792, 47.5079], 6);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(heroMap);
+
+            // Marqueur Antananarivo
+            L.marker([-18.8792, 47.5079]).addTo(heroMap)
+                .bindPopup('Antananarivo');
+
+            // Ligne vers Toamasina par défaut
+            const depCoords = [-18.8792, 47.5079];
+            const destCoords = [-18.1447, 49.3958];
+            
+            L.marker(destCoords).addTo(heroMap)
+                .bindPopup('Toamasina - 215 km');
+
+            L.polyline([depCoords, destCoords], {
+                color: '#22c55e',
+                weight: 3,
+                opacity: 0.8
+            }).addTo(heroMap)
+                .bindPopup('Antananarivo → Toamasina<br>📏 215 km');
+
+            heroMap.fitBounds([depCoords, destCoords], { padding: [30, 30] });
+        }
+
+        // ===========================================
+        // NAVBAR
+        // ===========================================
+        async function updateNavbar() {
+            const navList = document.getElementById('navLinks');
+            try {
+                const res = await fetch('/api/user');
+                if (res.ok) {
+                    const user = await res.json();
+                    let adminLink = '';
+                    if (user.role === 'admin') {
+                        adminLink = `<li class="nav-item"><a class="nav-link" href="/admin/dashboard.html"><i class="fas fa-gauge-high"></i> Admin</a></li>`;
+                    }
+                    navList.innerHTML = `
+                        <li class="nav-item"><a class="nav-link" href="/historique"><i class="fas fa-clock-rotate-left"></i> Historique</a></li>
+                        ${adminLink}
+                        <li class="nav-item"><span class="nav-link"><i class="fas fa-user-astronaut"></i> ${escapeHtml(user.name)}</span></li>
+                        <li class="nav-item"><a class="nav-link" href="#" onclick="logout()"><i class="fas fa-right-from-bracket"></i> Déconnexion</a></li>
+                    `;
+                } else {
+                    navList.innerHTML = `
+                        <li class="nav-item"><a class="nav-link" href="/login.html"><i class="fas fa-sign-in-alt"></i> Connexion</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/register.html"><i class="fas fa-user-plus"></i> Inscription</a></li>
+                    `;
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        async function logout() {
+            await fetch('/api/auth/logout');
+            window.location.href = '/';
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : (m === '<' ? '&lt;' : '&gt;'));
+        }
+
+        // ===========================================
+        // AFFICHAGE DES VOYAGES AVEC CARTE INTÉGRÉE
+        // ===========================================
+        let mapInstances = {};
+
+        function createTripMap(mapId, departure, destination, status, distance) {
+            setTimeout(() => {
+                const container = document.getElementById(mapId);
+                if (!container) return;
+                
+                const depCoords = getCoords(departure);
+                const destCoords = getCoords(destination);
+                if (!depCoords || !destCoords) return;
+
+                const map = L.map(mapId).setView([
+                    (depCoords[0] + destCoords[0]) / 2,
+                    (depCoords[1] + destCoords[1]) / 2
+                ], 6);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+
+                // Couleur selon statut
+                let color;
+                if (status === 'confirmed') color = '#22c55e';
+                else if (status === 'pending') color = '#f59e0b';
+                else color = '#ef4444';
+
+                // Marqueurs
+                L.marker(depCoords).addTo(map)
+                    .bindPopup(`🚗 ${departure}`);
+                L.marker(destCoords).addTo(map)
+                    .bindPopup(`🏁 ${destination}<br>📏 ${distance} km`);
+
+                // Ligne de la route
+                const latlngs = [depCoords, destCoords];
+                L.polyline(latlngs, {
+                    color: color,
+                    weight: 3,
+                    opacity: 0.8,
+                    dashArray: status === 'pending' ? '8, 6' : null
+                }).addTo(map)
+                    .bindPopup(`${departure} → ${destination}<br>📏 ${distance} km`);
+
+                map.fitBounds(latlngs, { padding: [30, 30] });
+                mapInstances[mapId] = map;
+
+                // Redimensionner la carte après chargement
+                setTimeout(() => map.invalidateSize(), 100);
+            }, 100);
+        }
+
+        async function loadTrips() {
+            const container = document.getElementById('tripsList');
+            try {
+                const res = await fetch('/api/trips');
+                if (!res.ok) throw new Error();
+                const trips = await res.json();
+                document.getElementById('tripCount').innerText = `${trips.length} trajet${trips.length > 1 ? 's' : ''}`;
+
+                if (trips.length === 0) {
+                    container.innerHTML = '<div class="alert alert-warning text-center">Aucun voyage pour le moment</div>';
+                    return;
+                }
+
+                // Mettre à jour le hero avec le premier voyage
+                if (trips.length > 0) {
+                    const firstTrip = trips[0];
+                    const dist = getDistance(firstTrip.departure, firstTrip.destination);
+                    document.getElementById('heroDistance').textContent = dist;
+                    document.getElementById('heroDestination').textContent = firstTrip.destination || 'Toamasina';
+                }
+
+                container.innerHTML = trips.map((trip, index) => {
+                    const distance = getDistance(trip.departure, trip.destination);
+                    const mapId = `tripMap-${trip.id || index}`;
+                    
+                    // Déterminer le statut (si disponible)
+                    const status = trip.status || 'pending';
+                    const statusLabels = {
+                        'confirmed': '✅ Confirmé',
+                        'pending': '⏳ En attente',
+                        'cancelled': '❌ Annulé'
+                    };
+                    const statusClasses = {
+                        'confirmed': 'confirmed',
+                        'pending': 'pending',
+                        'cancelled': 'cancelled'
+                    };
+
+                    return `
+                        <div class="col-md-6 col-xl-4">
+                            <div class="trip-card">
+                                <div class="card-header-bus">
+                                    <div>
+                                        <i class="fas fa-bus bus-icon"></i>
+                                        <span class="fw-bold ms-2">${escapeHtml(trip.departure)} → ${escapeHtml(trip.destination)}</span>
+                                    </div>
+                                    <span class="trip-status ${statusClasses[status] || 'pending'}">${statusLabels[status] || status}</span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span><i class="far fa-calendar-alt"></i> ${formatDateTime(trip.departure_time)}</span>
+                                        <span class="badge bg-light text-dark rounded-pill"><i class="far fa-clock"></i> ${formatTimeShort(trip.arrival_time)}</span>
+                                    </div>
+                                    
+                                    <!-- Carte du voyage -->
+                                    <div class="trip-map-container">
+                                        <div id="${mapId}" class="trip-map"></div>
+                                        <div class="trip-map-stats">
+                                            <span class="stat-item"><i class="fas fa-road"></i> ${distance} km</span>
+                                            <span class="stat-item"><i class="fas fa-map-pin"></i> ${escapeHtml(trip.departure)} → ${escapeHtml(trip.destination)}</span>
+                                            <span class="stat-item"><i class="fas fa-clock"></i> ${formatTimeShort(trip.departure_time)}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <div>
+                                            <span class="text-muted small">Places disponibles</span>
+                                            <strong>${trip.available_seats || trip.total_seats || 0}</strong>
+                                        </div>
+                                        <div class="trip-price">${trip.price} €</div>
+                                    </div>
+                                    <a href="reservation?tripId=${trip.id}" class="btn-reserve mt-3">
+                                        <i class="fas fa-ticket-alt me-2"></i> Réserver maintenant
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Initialiser les cartes après le rendu
+                setTimeout(() => {
+                    trips.forEach((trip, index) => {
+                        const mapId = `tripMap-${trip.id || index}`;
+                        const distance = getDistance(trip.departure, trip.destination);
+                        const status = trip.status || 'pending';
+                        createTripMap(mapId, trip.departure, trip.destination, status, distance);
+                    });
+                }, 200);
+
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<div class="alert alert-danger text-center">Erreur de chargement des voyages</div>';
+            }
+        }
+
+        function formatDateTime(dateString) {
+            if (!dateString) return '';
+            return new Date(dateString).toLocaleString('fr-FR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+        }
+        function formatTimeShort(dateString) {
+            if (!dateString) return '';
+            return new Date(dateString).toLocaleString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+        }
+
+        // ===========================================
+        // INIT
+        // ===========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            initHeroMap();
+            updateNavbar();
+            loadTrips();
+        });
+
+        // Redimensionner les cartes lors du changement de taille
+        window.addEventListener('resize', () => {
+            Object.values(mapInstances).forEach(map => {
+                if (map) map.invalidateSize();
+            });
+        });
+    </script>
+</body>
+</html>

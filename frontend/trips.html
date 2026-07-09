@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestion des Voyages - Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    /* --- Vos styles existants (conservés) --- */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #a5b4fc 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+    }
+    .main-container { max-width:1400px; margin:0 auto; }
+    .header-modern {
+      background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%);
+      border-radius: 20px;
+      padding: 20px 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 40px rgba(30, 41, 59, 0.4);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 4px solid #facc15;
+    }
+    .header-modern h1 {
+      font-size:2rem; font-weight:700; color:white; margin:0;
+      display:flex; align-items:center; gap:15px;
+    }
+    .header-modern h1 i { color:#facc15; }
+    .header-modern .user-info {
+      display:flex; align-items:center; gap:15px; flex-wrap:wrap;
+    }
+    .header-modern .user-info span {
+      color:rgba(255,255,255,0.9); font-weight:500;
+      background:rgba(255,255,255,0.1);
+      padding:8px 18px; border-radius:50px;
+      border:1px solid rgba(255,255,255,0.1);
+    }
+    .btn-dashboard {
+      background:rgba(255,255,255,0.1);
+      backdrop-filter:blur(10px);
+      border:1px solid rgba(255,255,255,0.2);
+      color:white; padding:10px 25px; border-radius:50px;
+      font-weight:600; transition:all 0.3s;
+      text-decoration:none; display:inline-flex;
+      align-items:center; gap:8px;
+    }
+    .btn-dashboard:hover { background:rgba(255,255,255,0.2); transform:scale(1.05); color:white; }
+    .btn-logout {
+      background:linear-gradient(135deg, #ef4444, #dc2626);
+      border:none; color:white; padding:10px 25px; border-radius:50px;
+      font-weight:600; transition:all 0.3s;
+    }
+    .btn-logout:hover { transform:scale(1.05); box-shadow:0 5px 20px rgba(239,68,68,0.4); }
+    .card-modern {
+      background:rgba(255,255,255,0.95);
+      backdrop-filter:blur(10px);
+      border-radius:20px; padding:25px; margin-bottom:30px;
+      box-shadow:0 10px 40px rgba(0,0,0,0.08);
+      border:2px solid rgba(255,255,255,0.5);
+    }
+    .card-modern .card-title {
+      font-weight:700; color:#1e293b; margin-bottom:20px;
+      display:flex; align-items:center; gap:12px;
+      font-size:1.3rem;
+    }
+    .card-modern .card-title i { color:#3b82f6; }
+    .btn-toggle-form {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border: none;
+      padding: 10px 25px;
+      border-radius: 50px;
+      font-weight: 600;
+      color: white;
+      transition: all 0.3s;
+      cursor: pointer;
+      margin-bottom: 15px;
+    }
+    .btn-toggle-form:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 20px rgba(59,130,246,0.4);
+    }
+    .btn-toggle-form.green {
+      background: linear-gradient(135deg, #10b981, #059669);
+    }
+    .btn-toggle-form.green:hover {
+      box-shadow: 0 5px 20px rgba(16,185,129,0.4);
+    }
+    .form-modern {
+      display: none;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+    .form-modern.active {
+      display: grid;
+    }
+    .form-modern input, .form-modern textarea, .form-modern select {
+      padding:12px 16px;
+      border:2px solid #e2e8f0; border-radius:12px;
+      font-size:0.95rem; transition:all 0.3s;
+      background:#f8fafc;
+      width:100%;
+    }
+    .form-modern input:focus, .form-modern textarea:focus, .form-modern select:focus {
+      border-color:#3b82f6;
+      box-shadow:0 0 0 4px rgba(59,130,246,0.15);
+      outline:none; background:white;
+    }
+    .form-modern .btn-submit {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border: none;
+      padding: 12px 20px;
+      border-radius: 50px;
+      font-weight: 600;
+      color: white;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    .form-modern .btn-submit:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 20px rgba(59,130,246,0.4);
+    }
+    .form-modern .btn-submit.green {
+      background: linear-gradient(135deg, #10b981, #059669);
+    }
+    .form-modern .btn-submit.green:hover {
+      box-shadow: 0 5px 20px rgba(16,185,129,0.4);
+    }
+    .table-modern {
+      width:100%; border-collapse:separate; border-spacing:0 8px;
+    }
+    .table-modern thead th {
+      background:linear-gradient(135deg, #1e293b, #334155);
+      color:white; padding:14px 18px;
+      font-weight:600; font-size:0.8rem;
+      text-transform:uppercase; letter-spacing:0.5px;
+      border:none;
+    }
+    .table-modern thead th:first-child { border-radius:12px 0 0 12px; }
+    .table-modern thead th:last-child { border-radius:0 12px 12px 0; }
+    .table-modern tbody tr {
+      background:white; transition:all 0.3s;
+      box-shadow:0 2px 10px rgba(0,0,0,0.05);
+    }
+    .table-modern tbody tr:hover {
+      transform:translateY(-3px);
+      box-shadow:0 8px 25px rgba(0,0,0,0.1);
+    }
+    .table-modern tbody td {
+      padding:14px 18px; vertical-align:middle;
+      border-bottom:1px solid #f1f5f9;
+    }
+    .table-modern tbody tr:last-child td { border-bottom:none; }
+    .table-modern tbody td:first-child { border-radius:12px 0 0 12px; }
+    .table-modern tbody td:last-child { border-radius:0 12px 12px 0; }
+    .badge-modern {
+      padding:5px 15px; border-radius:50px; font-weight:600;
+      font-size:0.75rem;
+    }
+    .badge-disponible { background:linear-gradient(135deg, #34d399, #10b981); color:white; }
+    .badge-complet { background:linear-gradient(135deg, #f87171, #ef4444); color:white; }
+    .badge-bientot { background:linear-gradient(135deg, #fbbf24, #f59e0b); color:white; }
+    .badge-pending { background:linear-gradient(135deg, #fbbf24, #f59e0b); color:white; }
+    .badge-confirmed { background:linear-gradient(135deg, #34d399, #10b981); color:white; }
+    .badge-cancelled { background:linear-gradient(135deg, #f87171, #ef4444); color:white; }
+    .action-buttons { display:flex; gap:8px; flex-wrap:wrap; }
+    .action-buttons button {
+      padding:5px 12px; border:none; border-radius:8px;
+      font-size:0.8rem; transition:all 0.3s; font-weight:600;
+    }
+    .action-buttons .btn-edit { background:linear-gradient(135deg, #3b82f6, #8b5cf6); color:white; }
+    .action-buttons .btn-delete { background:linear-gradient(135deg, #f87171, #ef4444); color:white; }
+    .action-buttons .btn-confirm { background:linear-gradient(135deg, #10b981, #059669); color:white; }
+    .action-buttons .btn-cancel { background:linear-gradient(135deg, #f59e0b, #d97706); color:white; }
+    .action-buttons button:hover { transform:scale(1.1); }
+    .notification {
+      position:fixed; top:20px; right:20px;
+      padding:15px 25px; border-radius:12px; color:white;
+      font-weight:600; z-index:9999;
+      transform:translateX(400px); transition:all 0.5s;
+      box-shadow:0 10px 30px rgba(0,0,0,0.2);
+    }
+    .notification.show { transform:translateX(0); }
+    .notification.success { background:linear-gradient(135deg, #34d399, #10b981); }
+    .notification.error { background:linear-gradient(135deg, #f87171, #ef4444); }
+    .destination-badge {
+      background:linear-gradient(135deg, #dbeafe, #bfdbfe);
+      color:#1e40af; padding:4px 12px; border-radius:50px;
+      font-weight:600; font-size:0.85rem; display:inline-block;
+    }
+
+    /* --- Styles spécifiques pour la carte --- */
+    #mapContainer {
+      margin-top: 20px;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      display: none;
+    }
+    #mapContainer.active { display: block; }
+    #map { height: 500px; width: 100%; border-radius: 16px; }
+
+    .btn-toggle-map {
+      background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+      border: none;
+      padding: 10px 25px;
+      border-radius: 50px;
+      font-weight: 600;
+      color: white;
+      transition: all 0.3s;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    .btn-toggle-map:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 20px rgba(139,92,246,0.4);
+    }
+
+    /* Légende de la carte */
+    .map-legend {
+      display: flex;
+      gap: 15px;
+      margin: 10px 0;
+      padding: 10px 15px;
+      background: rgba(255,255,255,0.9);
+      border-radius: 12px;
+      flex-wrap: wrap;
+    }
+    .map-legend .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+    }
+    .legend-color {
+      width: 25px;
+      height: 4px;
+      border-radius: 4px;
+    }
+    .legend-color.green { background: #22c55e; }
+    .legend-color.red { background: #ef4444; }
+
+    /* Formulaire sur la carte */
+    .map-form-container {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      display: none;
+    }
+    .map-form-container.active { display: block; }
+    .map-form-container .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+    .map-form-container input, .map-form-container select {
+      padding: 10px 14px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      background: #f8fafc;
+    }
+    .map-form-container input:focus, .map-form-container select:focus {
+      border-color: #3b82f6;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+    }
+    .map-form-container .btn-submit-map {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border: none;
+      padding: 10px 25px;
+      border-radius: 50px;
+      font-weight: 600;
+      color: white;
+      transition: 0.3s;
+      cursor: pointer;
+    }
+    .map-form-container .btn-submit-map:hover { transform: scale(1.02); }
+
+    @media (max-width:768px) {
+      .header-modern { flex-direction:column; gap:15px; text-align:center; padding:20px; }
+      .header-modern h1 { font-size:1.5rem; justify-content:center; }
+      .header-modern .user-info { justify-content:center; }
+      .form-modern { grid-template-columns:1fr; }
+      .table-modern { font-size:0.8rem; }
+      .table-modern thead th, .table-modern tbody td { padding:10px 12px; }
+      #map { height: 300px; }
+      .map-form-container .form-row { grid-template-columns:1fr; }
+    }
+    @media (max-width:480px) { .main-container { padding:0 5px; } }
+  </style>
+</head>
+<body>
+<div class="main-container">
+  <!-- Header -->
+  <div class="header-modern">
+    <h1><i class="fas fa-car"></i> Gestion des Voyages</h1>
+    <div class="user-info">
+      <span><i class="fas fa-user-circle"></i> <span id="userName">Admin</span></span>
+      <a href="dashboard.html" class="btn-dashboard">
+        <i class="fas fa-chart-pie"></i> Dashboard
+      </a>
+      <button class="btn-logout" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> Déconnexion
+      </button>
+    </div>
+  </div>
+
+  <!-- Notification -->
+  <div id="notification" class="notification"></div>
+
+  <!-- ========== SECTION : LISTE DES VOYAGES ========== -->
+  <div class="card-modern">
+    <div class="card-title">
+      <i class="fas fa-list"></i> Liste des voyages
+    </div>
+    <button class="btn-toggle-form" id="toggleTripFormBtn"><i class="fas fa-plus"></i> Ajouter un voyage</button>
+    <form id="tripForm" class="form-modern">
+      <input type="text" id="departure" placeholder="🚗 Ville de départ" required>
+      <input type="text" id="destination" placeholder="🚗 Destination" required>
+      <input type="datetime-local" id="departure_time" required>
+      <input type="datetime-local" id="arrival_time">
+      <input type="number" id="total_seats" placeholder="🪑 Places totales" min="1" required>
+      <input type="number" id="price" placeholder="💰 Prix" step="0.01" required>
+      <input type="text" id="driver_name" placeholder="👤 Nom du chauffeur" required>
+      <input type="text" id="driver_contact" placeholder="📞 Contact chauffeur" required>
+      <textarea id="description" placeholder="📝 Description" rows="1"></textarea>
+      <button type="submit" class="btn-submit"><i class="fas fa-plus"></i> Ajouter</button>
+    </form>
+
+    <!-- Carte -->
+    <button class="btn-toggle-map" id="toggleMapBtn">
+      <i class="fas fa-map"></i> Voir les trajets sur la carte
+    </button>
+
+    <!-- Légende -->
+    <div class="map-legend" id="mapLegend" style="display:none;">
+      <span class="legend-item"><span class="legend-color green"></span> Actif (départ à venir)</span>
+      <span class="legend-item"><span class="legend-color red"></span> Inactif (départ passé)</span>
+    </div>
+
+    <div id="mapContainer">
+      <div id="map"></div>
+
+      <!-- Formulaire d'ajout depuis la carte -->
+      <div class="map-form-container" id="mapFormContainer">
+        <h6 class="mb-2"><i class="fas fa-plus-circle text-primary"></i> Ajouter un voyage depuis la carte</h6>
+        <form id="mapTripForm" class="form-row">
+          <input type="text" id="map_departure" placeholder="🚗 Départ" required>
+          <input type="text" id="map_destination" placeholder="🚗 Destination" required>
+          <input type="datetime-local" id="map_departure_time" required>
+          <input type="datetime-local" id="map_arrival_time">
+          <input type="number" id="map_total_seats" placeholder="Places" min="1" required>
+          <input type="number" id="map_price" placeholder="Prix" step="0.01" required>
+          <input type="text" id="map_driver_name" placeholder="👤 Chauffeur" required>
+          <input type="text" id="map_driver_contact" placeholder="📞 Contact" required>
+          <button type="submit" class="btn-submit-map"><i class="fas fa-plus"></i> Ajouter</button>
+        </form>
+        <div id="mapFormMessage" class="mt-2"></div>
+      </div>
+    </div>
+
+    <div style="overflow-x:auto; margin-top:20px;">
+      <table class="table-modern" id="tripsTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Départ</th>
+            <th>Destination</th>
+            <th>Départ</th>
+            <th>Arrivée</th>
+            <th>Prix</th>
+            <th>Places</th>
+            <th>Chauffeur</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tripsList">
+          <tr><td colspan="10" style="text-align:center; padding:40px; color:#94a3b8;"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Chargement...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ========== SECTION : GESTION DES RÉSERVATIONS ========== -->
+  <div class="card-modern">
+    <div class="card-title">
+      <i class="fas fa-ticket-alt"></i> Gestion des réservations
+    </div>
+    <button class="btn-toggle-form green" id="toggleReservationFormBtn"><i class="fas fa-plus"></i> Ajouter une réservation</button>
+    <form id="reservationForm" class="form-modern">
+      <input type="number" id="res_user_id" placeholder="🆔 ID Utilisateur" required>
+      <input type="number" id="res_trip_id" placeholder="🆔 ID Voyage" required>
+      <input type="number" id="res_seats" placeholder="🪑 Nombre de places" min="1" required>
+      <input type="text" id="res_passenger_name" placeholder="👤 Nom du voyageur" required>
+      <input type="text" id="res_passenger_contact" placeholder="📞 Contact voyageur" required>
+      <select id="res_passenger_sexe">
+        <option value="M">Masculin</option>
+        <option value="F">Féminin</option>
+        <option value="Autre">Autre</option>
+      </select>
+      <select id="res_payment_method">
+        <option value="Espèces">💰 Espèces</option>
+        <option value="Carte">💳 Carte</option>
+        <option value="Virement">🏦 Virement</option>
+      </select>
+      <select id="res_status">
+        <option value="pending">⏳ En attente</option>
+        <option value="confirmed">✅ Confirmée</option>
+        <option value="cancelled">❌ Annulée</option>
+      </select>
+      <button type="submit" class="btn-submit green"><i class="fas fa-check"></i> Créer</button>
+    </form>
+
+    <div style="overflow-x:auto; margin-top:20px;">
+      <table class="table-modern" id="reservationsTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>User</th>
+            <th>Trip</th>
+            <th>Voyageur</th>
+            <th>Contact</th>
+            <th>Sexe</th>
+            <th>Paiement</th>
+            <th>Places</th>
+            <th>Date</th>
+            <th>Statut</th>
+            <th>Total</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="reservationsList">
+          <tr><td colspan="12" style="text-align:center; padding:40px; color:#94a3b8;"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Chargement des réservations...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  // ===========================================
+  // VÉRIFICATION TOKEN & NOTIFICATIONS
+  // ===========================================
+  const token = localStorage.getItem('token');
+  if (!token) window.location.href = '/login';
+  document.getElementById('userName').textContent = localStorage.getItem('userName') || 'Admin';
+
+  function showNotification(message, type = 'success') {
+    const notif = document.getElementById('notification');
+    notif.textContent = message;
+    notif.className = `notification ${type}`;
+    setTimeout(() => notif.classList.add('show'), 100);
+    setTimeout(() => notif.classList.remove('show'), 3000);
+  }
+
+  // ===========================================
+  // API HELPER
+  // ===========================================
+  async function apiFetch(url, options = {}) {
+    const res = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        ...options.headers
+      }
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Erreur serveur');
+    }
+    return res.json();
+  }
+
+  // ===========================================
+  // COORDONNÉES DES VILLES DE MADAGASCAR
+  // ===========================================
+  const cityCoords = {
+    'Antananarivo': [-18.8792, 47.5079],
+    'Toamasina': [-18.1447, 49.3958],
+    'Mahajanga': [-15.7167, 46.3167],
+    'Toliara': [-23.35, 43.6667],
+    'Antsiranana': [-12.2781, 49.2917],
+    'Fianarantsoa': [-21.4542, 47.0875],
+    'Moramanga': [-18.9497, 48.2300],
+    'Antsirabe': [-19.8667, 47.0333],
+    'Manakara': [-22.1472, 48.0106],
+    'Morondava': [-20.2889, 44.3181],
+    'Sambava': [-14.2667, 50.1667],
+    'Antalaha': [-14.9000, 50.2833],
+    'Maroantsetra': [-15.4333, 49.7333],
+    'Tananarive': [-18.8792, 47.5079],
+    'Majunga': [-15.7167, 46.3167],
+    'Tulear': [-23.35, 43.6667],
+    'Diego Suarez': [-12.2781, 49.2917],
+    'Tamatave': [-18.1447, 49.3958],
+    'Antanifotsy': [-19.6500, 47.3167],
+    'Ambatondrazaka': [-17.8333, 48.4167],
+    'Ambanja': [-13.6833, 48.4500],
+    'Maevatanana': [-16.9500, 46.8333],
+    'Miandrivazo': [-19.5333, 45.4667],
+    'Ihosy': [-22.4000, 46.1167],
+    'Taolagnaro': [-25.0333, 46.9833],
+    'Mananjary': [-21.2167, 48.3333],
+  };
+
+  function getCoords(cityName) {
+    if (!cityName) return null;
+    const trimmed = cityName.trim();
+    if (cityCoords[trimmed]) return cityCoords[trimmed];
+    const lower = trimmed.toLowerCase();
+    for (const key in cityCoords) {
+      if (key.toLowerCase() === lower) return cityCoords[key];
+    }
+    for (const key in cityCoords) {
+      if (lower.includes(key.toLowerCase()) || key.toLowerCase().includes(lower)) {
+        return cityCoords[key];
+      }
+    }
+    return null;
+  }
+
+  // ===========================================
+  // CARTE LEAFLET
+  // ===========================================
+  let mapInstance = null;
+  let mapInitialized = false;
+  let markersLayer = null;
+  let routesLayer = null;
+  let selectedDeparture = null;
+  let selectedDestination = null;
+
+  function initMap() {
+    if (mapInitialized) return;
+    mapInstance = L.map('map').setView([-19.0, 47.0], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(mapInstance);
+    markersLayer = L.layerGroup().addTo(mapInstance);
+    routesLayer = L.layerGroup().addTo(mapInstance);
+    mapInitialized = true;
+
+    // Clic sur la carte pour ajouter des points
+    mapInstance.on('click', function(e) {
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
+      const cityName = prompt('Entrez le nom de la ville pour ce point (départ ou destination) :');
+      if (cityName && cityName.trim()) {
+        const coords = getCoords(cityName.trim());
+        if (coords) {
+          // Ajouter un marqueur temporaire
+          const marker = L.marker(coords).addTo(markersLayer)
+            .bindPopup(`📍 ${cityName.trim()}<br><button onclick="setMapPoint('${cityName.trim()}', ${coords[0]}, ${coords[1]})">Définir comme point</button>`)
+            .openPopup();
+        } else {
+          showNotification('Ville non reconnue, vérifiez l\'orthographe.', 'error');
+        }
+      }
+    });
+  }
+
+  // Fonction pour définir un point depuis la carte
+  window.setMapPoint = function(cityName, lat, lng) {
+    if (!selectedDeparture) {
+      selectedDeparture = { name: cityName, coords: [lat, lng] };
+      document.getElementById('map_departure').value = cityName;
+      showNotification(`Départ défini : ${cityName}`, 'success');
+      // Ajouter un marqueur vert pour le départ
+      L.marker([lat, lng], { icon: L.divIcon({ className: 'departure-marker', html: '🚗', iconSize: [30, 30] }) })
+        .addTo(markersLayer)
+        .bindPopup(`Départ : ${cityName}`);
+    } else if (!selectedDestination) {
+      selectedDestination = { name: cityName, coords: [lat, lng] };
+      document.getElementById('map_destination').value = cityName;
+      showNotification(`Destination définie : ${cityName}`, 'success');
+      L.marker([lat, lng], { icon: L.divIcon({ className: 'destination-marker', html: '🏁', iconSize: [30, 30] }) })
+        .addTo(markersLayer)
+        .bindPopup(`Destination : ${cityName}`);
+      // Afficher le formulaire
+      document.getElementById('mapFormContainer').classList.add('active');
+    }
+  };
+
+  // Réinitialiser la sélection
+  function resetMapSelection() {
+    selectedDeparture = null;
+    selectedDestination = null;
+    document.getElementById('map_departure').value = '';
+    document.getElementById('map_destination').value = '';
+    document.getElementById('mapFormContainer').classList.remove('active');
+  }
+
+  // ===========================================
+  // DESSINER LES TRAJETS SUR LA CARTE
+  // ===========================================
+  function drawRoutes(trips) {
+    if (!mapInitialized) initMap();
+    markersLayer.clearLayers();
+    routesLayer.clearLayers();
+
+    const now = new Date();
+
+    trips.forEach(trip => {
+      const depName = trip.departure;
+      const destName = trip.destination;
+      if (!depName || !destName) return;
+      const depCoords = getCoords(depName);
+      const destCoords = getCoords(destName);
+      if (!depCoords || !destCoords) {
+        console.warn(`Coordonnées non trouvées pour ${depName} ou ${destName}`);
+        return;
+      }
+
+      // Déterminer si le voyage est actif (départ > maintenant)
+      const departureDate = new Date(trip.departure_time || trip.departure_date);
+      const isActive = departureDate > now;
+      const color = isActive ? '#22c55e' : '#ef4444';
+
+      // Marqueurs avec popup
+      L.marker(depCoords).addTo(markersLayer)
+        .bindPopup(`🚗 <b>Départ</b><br>${depName}<br>Voyage #${trip.id}<br>${isActive ? '🟢 Actif' : '🔴 Inactif'}`);
+      L.marker(destCoords).addTo(markersLayer)
+        .bindPopup(`🏁 <b>Destination</b><br>${destName}<br>Voyage #${trip.id}<br>${isActive ? '🟢 Actif' : '🔴 Inactif'}`);
+
+      // Ligne avec couleur selon statut
+      const latlngs = [depCoords, destCoords];
+      L.polyline(latlngs, {
+        color: color,
+        weight: 4,
+        opacity: 0.8,
+        dashArray: isActive ? null : '5, 5'
+      }).addTo(routesLayer)
+        .bindPopup(`<b>${depName} → ${destName}</b><br>Voyage #${trip.id}<br>${isActive ? '🟢 Actif' : '🔴 Inactif'}<br>${new Date(trip.departure_time || trip.departure_date).toLocaleString('fr-FR')}`);
+    });
+
+    if (trips.length > 0) {
+      const bounds = routesLayer.getBounds();
+      if (bounds.isValid()) {
+        mapInstance.fitBounds(bounds, { padding: [30, 30] });
+      }
+    }
+
+    // Afficher la légende
+    document.getElementById('mapLegend').style.display = 'flex';
+  }
+
+  // ===========================================
+  // 1. GESTION DES VOYAGES
+  // ===========================================
+  async function loadTrips() {
+    try {
+      const trips = await apiFetch('/api/trips');
+      const tbody = document.getElementById('tripsList');
+      if (trips.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:#94a3b8;"><i class="fas fa-car fa-3x" style="display:block;margin-bottom:10px;color:#cbd5e1;"></i>Aucun voyage</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = trips.map(trip => {
+        const now = new Date();
+        const departure = new Date(trip.departure_time || trip.departure_date);
+        let statusBadge = '';
+        if (trip.available_seats === 0) statusBadge = '<span class="badge-modern badge-complet">Complet</span>';
+        else if (departure < now) statusBadge = '<span class="badge-modern badge-bientot">Départ passé</span>';
+        else statusBadge = `<span class="badge-modern badge-disponible">${trip.available_seats} places</span>`;
+        return `
+          <tr>
+            <td><strong style="color:#3b82f6;">#${trip.id}</strong></td>
+            <td><span class="destination-badge">${trip.departure || '-'}</span></td>
+            <td><span class="destination-badge"><i class="fas fa-map-pin"></i> ${trip.destination}</span></td>
+            <td><i class="fas fa-calendar-day" style="color:#64748b;"></i> ${new Date(trip.departure_time || trip.departure_date).toLocaleString('fr-FR')}</td>
+            <td>${trip.arrival_time || trip.return_date ? new Date(trip.arrival_time || trip.return_date).toLocaleString('fr-FR') : '-'}</td>
+            <td><strong style="color:#3b82f6;">${trip.price} €</strong></td>
+            <td><i class="fas fa-users" style="color:#64748b;"></i> ${trip.available_seats}</td>
+            <td>${trip.driver_name || '-'}<br><small>${trip.driver_contact || ''}</small></td>
+            <td>${statusBadge}</td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn-edit" onclick="editTrip(${trip.id})"><i class="fas fa-edit"></i></button>
+                <button class="btn-delete" onclick="deleteTrip(${trip.id})"><i class="fas fa-trash"></i></button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      if (document.getElementById('mapContainer').classList.contains('active')) {
+        drawRoutes(trips);
+      }
+      window._tripsData = trips;
+    } catch (e) {
+      showNotification('Erreur chargement voyages', 'error');
+    }
+  }
+
+  // ----- Toggle formulaire voyage -----
+  document.getElementById('toggleTripFormBtn').addEventListener('click', function() {
+    const form = document.getElementById('tripForm');
+    form.classList.toggle('active');
+    this.textContent = form.classList.contains('active') ? '❌ Masquer le formulaire' : '➕ Ajouter un voyage';
+  });
+
+  // ----- Soumission du formulaire voyage principal -----
+  document.getElementById('tripForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const departure = document.getElementById('departure').value.trim();
+    const destination = document.getElementById('destination').value.trim();
+    const departure_time = document.getElementById('departure_time').value;
+    const arrival_time = document.getElementById('arrival_time').value || null;
+    const total_seats = parseInt(document.getElementById('total_seats').value);
+    const price = parseFloat(document.getElementById('price').value);
+    const driver_name = document.getElementById('driver_name').value.trim();
+    const driver_contact = document.getElementById('driver_contact').value.trim();
+    const description = document.getElementById('description').value.trim() || null;
+    if (!departure || !destination || !departure_time || !total_seats || !price || !driver_name || !driver_contact) {
+      showNotification('⚠️ Tous les champs obligatoires doivent être remplis.', 'error');
+      return;
+    }
+    try {
+      await apiFetch('/api/trips', {
+        method: 'POST',
+        body: JSON.stringify({ departure, destination, departure_time, arrival_time, total_seats, price, driver_name, driver_contact, description })
+      });
+      showNotification('✅ Voyage ajouté !');
+      document.getElementById('tripForm').reset();
+      loadTrips();
+      document.getElementById('tripForm').classList.remove('active');
+      document.getElementById('toggleTripFormBtn').textContent = '➕ Ajouter un voyage';
+    } catch (e) {
+      showNotification('❌ ' + e.message, 'error');
+    }
+  });
+
+  // ----- Soumission du formulaire depuis la carte -----
+  document.getElementById('mapTripForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const departure = document.getElementById('map_departure').value.trim();
+    const destination = document.getElementById('map_destination').value.trim();
+    const departure_time = document.getElementById('map_departure_time').value;
+    const arrival_time = document.getElementById('map_arrival_time').value || null;
+    const total_seats = parseInt(document.getElementById('map_total_seats').value);
+    const price = parseFloat(document.getElementById('map_price').value);
+    const driver_name = document.getElementById('map_driver_name').value.trim();
+    const driver_contact = document.getElementById('map_driver_contact').value.trim();
+    const msg = document.getElementById('mapFormMessage');
+
+    if (!departure || !destination || !departure_time || !total_seats || !price || !driver_name || !driver_contact) {
+      msg.innerHTML = '<div class="alert alert-danger">⚠️ Tous les champs sont requis.</div>';
+      return;
+    }
+
+    try {
+      await apiFetch('/api/trips', {
+        method: 'POST',
+        body: JSON.stringify({ departure, destination, departure_time, arrival_time, total_seats, price, driver_name, driver_contact, description: 'Ajout depuis la carte' })
+      });
+      msg.innerHTML = '<div class="alert alert-success">✅ Voyage ajouté depuis la carte !</div>';
+      document.getElementById('mapTripForm').reset();
+      resetMapSelection();
+      loadTrips();
+      setTimeout(() => { msg.innerHTML = ''; }, 3000);
+    } catch (e) {
+      msg.innerHTML = `<div class="alert alert-danger">❌ ${e.message}</div>`;
+    }
+  });
+
+  // ----- Suppression d'un voyage -----
+  async function deleteTrip(id) {
+    if (!confirm('Supprimer ce voyage ?')) return;
+    try {
+      await apiFetch(`/api/trips/${id}`, { method: 'DELETE' });
+      showNotification('✅ Voyage supprimé');
+      loadTrips();
+    } catch (e) {
+      showNotification('❌ ' + e.message, 'error');
+    }
+  }
+
+  function editTrip(id) {
+    showNotification(`📝 Édition #${id} (à implémenter)`, 'success');
+  }
+
+  // ===========================================
+  // 2. GESTION DES RÉSERVATIONS
+  // ===========================================
+  async function loadReservations() {
+    try {
+      const reservations = await apiFetch('/api/reservations');
+      const tbody = document.getElementById('reservationsList');
+      if (reservations.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:40px;color:#94a3b8;"><i class="fas fa-inbox fa-3x" style="display:block;margin-bottom:10px;color:#cbd5e1;"></i>Aucune réservation</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = reservations.map(r => {
+        const statusClass = r.status === 'confirmed' ? 'badge-confirmed' : (r.status === 'cancelled' ? 'badge-cancelled' : 'badge-pending');
+        const statusLabel = { 'confirmed':'✅ Confirmée', 'pending':'⏳ En attente', 'cancelled':'❌ Annulée' }[r.status] || r.status;
+        return `
+          <tr>
+            <td><strong style="color:#3b82f6;">#${r.id}</strong></td>
+            <td>${r.user_id || '-'}</td>
+            <td>${r.trip_id || '-'}</td>
+            <td>${r.passenger_name || '-'}</td>
+            <td>${r.passenger_contact || '-'}</td>
+            <td>${r.passenger_sexe || '-'}</td>
+            <td>${r.payment_method || '-'}</td>
+            <td>${r.seats || 0}</td>
+            <td><i class="far fa-calendar-alt" style="color:#64748b;"></i> ${new Date(r.reservation_date || r.created_at).toLocaleString('fr-FR')}</td>
+            <td><span class="badge-modern ${statusClass}">${statusLabel}</span></td>
+            <td><strong style="color:#10b981;">${r.total_price} €</strong></td>
+            <td>
+              <div class="action-buttons">
+                ${r.status !== 'confirmed' ? `<button class="btn-confirm" onclick="updateReservationStatus(${r.id},'confirmed')"><i class="fas fa-check"></i></button>` : ''}
+                ${r.status !== 'cancelled' ? `<button class="btn-cancel" onclick="updateReservationStatus(${r.id},'cancelled')"><i class="fas fa-times"></i></button>` : ''}
+                <button class="btn-delete" onclick="deleteReservation(${r.id})"><i class="fas fa-trash"></i></button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    } catch (e) {
+      showNotification('Erreur chargement réservations', 'error');
+    }
+  }
+
+  // ----- Toggle formulaire réservation -----
+  document.getElementById('toggleReservationFormBtn').addEventListener('click', function() {
+    const form = document.getElementById('reservationForm');
+    form.classList.toggle('active');
+    this.textContent = form.classList.contains('active') ? '❌ Masquer le formulaire' : '➕ Ajouter une réservation';
+  });
+
+  // ----- Soumission du formulaire réservation -----
+  document.getElementById('reservationForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const user_id = parseInt(document.getElementById('res_user_id').value);
+    const trip_id = parseInt(document.getElementById('res_trip_id').value);
+    const seats = parseInt(document.getElementById('res_seats').value);
+    const passenger_name = document.getElementById('res_passenger_name').value.trim();
+    const passenger_contact = document.getElementById('res_passenger_contact').value.trim();
+    const passenger_sexe = document.getElementById('res_passenger_sexe').value;
+    const payment_method = document.getElementById('res_payment_method').value;
+    const status = document.getElementById('res_status').value;
+    if (!user_id || !trip_id || !seats || !passenger_name || !passenger_contact) {
+      showNotification('⚠️ Tous les champs obligatoires sont requis.', 'error');
+      return;
+    }
+    try {
+      await apiFetch('/api/reservations', {
+        method: 'POST',
+        body: JSON.stringify({ user_id, trip_id, seats, passenger_name, passenger_contact, passenger_sexe, payment_method, status })
+      });
+      showNotification('✅ Réservation créée !');
+      document.getElementById('reservationForm').reset();
+      loadReservations();
+      loadTrips();
+      document.getElementById('reservationForm').classList.remove('active');
+      document.getElementById('toggleReservationFormBtn').textContent = '➕ Ajouter une réservation';
+    } catch (e) {
+      showNotification('❌ ' + e.message, 'error');
+    }
+  });
+
+  // ----- Mise à jour du statut d'une réservation -----
+  async function updateReservationStatus(id, newStatus) {
+    try {
+      await apiFetch(`/api/reservations/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: newStatus })
+      });
+      showNotification(`✅ Statut mis à jour : ${newStatus}`);
+      loadReservations();
+      loadTrips();
+    } catch (e) {
+      showNotification('❌ ' + e.message, 'error');
+    }
+  }
+
+  // ----- Suppression d'une réservation -----
+  async function deleteReservation(id) {
+    if (!confirm('Supprimer cette réservation ?')) return;
+    try {
+      await apiFetch(`/api/reservations/${id}`, { method: 'DELETE' });
+      showNotification('✅ Réservation supprimée');
+      loadReservations();
+      loadTrips();
+    } catch (e) {
+      showNotification('❌ ' + e.message, 'error');
+    }
+  }
+
+  // ----- Déconnexion -----
+  function logout() {
+    localStorage.clear();
+    window.location.href = '/login';
+  }
+
+  // ===========================================
+  // 3. GESTION DE LA CARTE
+  // ===========================================
+  document.getElementById('toggleMapBtn').addEventListener('click', function() {
+    const container = document.getElementById('mapContainer');
+    container.classList.toggle('active');
+    this.innerHTML = container.classList.contains('active') ?
+      '<i class="fas fa-times"></i> Masquer la carte' :
+      '<i class="fas fa-map"></i> Voir les trajets sur la carte';
+
+    if (container.classList.contains('active')) {
+      if (!mapInitialized) initMap();
+      if (window._tripsData && window._tripsData.length > 0) {
+        drawRoutes(window._tripsData);
+      } else {
+        loadTrips().then(() => {
+          if (window._tripsData) drawRoutes(window._tripsData);
+        });
+      }
+      // Afficher la légende
+      document.getElementById('mapLegend').style.display = 'flex';
+    } else {
+      document.getElementById('mapLegend').style.display = 'none';
+      document.getElementById('mapFormContainer').classList.remove('active');
+      resetMapSelection();
+    }
+  });
+
+  // ----- INIT -----
+  loadTrips();
+  loadReservations();
+</script>
+</body>
+</html>

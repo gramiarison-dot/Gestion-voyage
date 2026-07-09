@@ -1,0 +1,8 @@
+cd "C:\BDDXAMP\htdocs\Gestion voyage"
+echo node_modules/ > .gitignore
+echo .env >> .gitignore
+echo .DS_Store >> .gitignore
+echo *.log >> .gitignore
+echo *.tmp >> .gitignore
+echo dist/ >> .gitignore
+echo build/ >> .gitignore
