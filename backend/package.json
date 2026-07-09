@@ -1,5 +1,5 @@
 {
-  "name": "travel-reservation",
+  "name": "Gestion-voyage-backend",
   "version": "1.0.0",
   "description": "Système web de réservation de voyage",
   "main": "server.js",
