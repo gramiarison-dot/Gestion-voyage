@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Connexion - VoyageReserv</title>
+    <!-- Font Awesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Google Font pour une typographie moderne -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .login-wrapper {
+            display: flex;
+            max-width: 1100px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* --- Partie gauche : formulaire --- */
+        .login-form-section {
+            flex: 1;
+            padding: 3rem 2.5rem;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(4px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .login-form-section h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .login-form-section p.sub {
+            color: #64748b;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .login-form-section form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 14px 16px 14px 48px;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-family: inherit;
+            background: #f8fafc;
+            transition: all 0.25s;
+            outline: none;
+            color: #0f172a;
+            appearance: none;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            border-color: #3b82f6;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+        }
+
+        .input-group input:focus + i,
+        .input-group select:focus + i {
+            color: #3b82f6;
+        }
+
+        .input-group select {
+            padding-right: 40px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364758b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border: none;
+            padding: 16px;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 0.5rem;
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-login:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(59, 130, 246, 0.5);
+        }
+
+        .btn-login:active {
+            transform: scale(0.97);
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: center;
+            min-height: 1.8rem;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #475569;
+            font-weight: 500;
+        }
+
+        .register-link a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 700;
+            transition: color 0.2s;
+        }
+
+        .register-link a:hover {
+            color: #2563eb;
+            text-decoration: underline;
+        }
+
+        /* --- Partie droite : Carte Madagascar --- */
+        .login-illustration {
+            flex: 1.2;
+            background: linear-gradient(145deg, #0f172a, #1a2a4a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            min-height: 500px;
+        }
+
+        .login-illustration .bg-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.2;
+            pointer-events: none;
+        }
+
+        .login-illustration .bg-blob:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            background: #3b82f6;
+            top: -100px;
+            right: -100px;
+        }
+
+        .login-illustration .bg-blob:nth-child(2) {
+            width: 250px;
+            height: 250px;
+            background: #8b5cf6;
+            bottom: -80px;
+            left: -80px;
+        }
+
+        /* Carte SVG Madagascar */
+        .madagascar-map {
+            width: 100%;
+            max-width: 380px;
+            height: auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .madagascar-map svg {
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.5));
+        }
+
+        /* Points de villes animés */
+        .city-dot {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .city-dot:nth-child(2) { animation-delay: 0.3s; }
+        .city-dot:nth-child(3) { animation-delay: 0.6s; }
+        .city-dot:nth-child(4) { animation-delay: 0.9s; }
+        .city-dot:nth-child(5) { animation-delay: 1.2s; }
+        .city-dot:nth-child(6) { animation-delay: 1.5s; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.3); }
+        }
+
+        /* Lignes de trajet animées */
+        .route-line {
+            stroke-dasharray: 8 6;
+            animation: dashMove 3s linear infinite;
+        }
+
+        .route-line:nth-child(2) { animation-delay: 0.5s; }
+        .route-line:nth-child(3) { animation-delay: 1s; }
+        .route-line:nth-child(4) { animation-delay: 1.5s; }
+        .route-line:nth-child(5) { animation-delay: 2s; }
+
+        @keyframes dashMove {
+            from { stroke-dashoffset: 0; }
+            to { stroke-dashoffset: -14; }
+        }
+
+        /* Labels des villes */
+        .city-label {
+            font-size: 9px;
+            font-weight: 600;
+            fill: #94a3b8;
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+        }
+
+        .city-label.highlight {
+            fill: #facc15;
+            font-weight: 700;
+        }
+
+        /* Légende de la carte */
+        .map-legend {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 6px 16px;
+            border-radius: 30px;
+            backdrop-filter: blur(8px);
+            z-index: 2;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .map-legend .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #cbd5e1;
+            font-size: 0.6rem;
+            font-weight: 500;
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .legend-dot.blue { background: #3b82f6; }
+        .legend-dot.purple { background: #8b5cf6; }
+        .legend-dot.green { background: #22c55e; }
+        .legend-dot.yellow { background: #facc15; }
+
+        .legend-line {
+            width: 20px;
+            height: 2px;
+            display: inline-block;
+            border-radius: 2px;
+        }
+
+        .legend-line.blue { background: #3b82f6; }
+        .legend-line.purple { background: #8b5cf6; }
+        .legend-line.green { background: #22c55e; }
+
+        /* Responsive */
+        @media (max-width: 850px) {
+            .login-wrapper {
+                flex-direction: column;
+                max-width: 450px;
+            }
+            .login-illustration {
+                display: none;
+            }
+            .login-form-section {
+                padding: 2rem 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-form-section h2 {
+                font-size: 1.8rem;
+            }
+            .input-group input,
+            .input-group select {
+                padding: 12px 14px 12px 42px;
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-wrapper">
+
+    <!-- PARTIE GAUCHE : FORMULAIRE -->
+    <div class="login-form-section">
+        <h2>Bienvenue</h2>
+        <p class="sub">Connectez-vous à votre espace de gestion</p>
+
+        <form id="loginForm">
+            <div class="input-group">
+                <i class="fas fa-envelope"></i>
+                <input type="email" id="email" placeholder="Adresse email" required />
+            </div>
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" placeholder="Mot de passe" required />
+            </div>
+            <div class="input-group">
+                <i class="fas fa-user-tag"></i>
+                <select id="role">
+                    <option value="client">👤 Client</option>
+                    <option value="admin">🛠️ Administrateur</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-login">
+                <i class="fas fa-sign-in-alt"></i> Se connecter
+            </button>
+            <div id="errorMsg" class="error-message"></div>
+        </form>
+
+        <div class="register-link">
+            Pas encore de compte ? <a href="register.html">Inscrivez-vous</a>
+        </div>
+    </div>
+
+    <!-- PARTIE DROITE : CARTE MADAGASCAR -->
+    <div class="login-illustration">
+        <div class="bg-blob"></div>
+        <div class="bg-blob"></div>
+
+        <div class="madagascar-map">
+            <svg viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
+                <!-- Fond de la carte -->
+                <defs>
+                    <radialGradient id="glowBlue" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.3"/>
+                        <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+                    </radialGradient>
+                    <radialGradient id="glowPurple" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.3"/>
+                        <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
+                    </radialGradient>
+                    <radialGradient id="glowGreen" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#22c55e" stop-opacity="0.3"/>
+                        <stop offset="100%" stop-color="#22c55e" stop-opacity="0"/>
+                    </radialGradient>
+                    <radialGradient id="glowYellow" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#facc15" stop-opacity="0.3"/>
+                        <stop offset="100%" stop-color="#facc15" stop-opacity="0"/>
+                    </radialGradient>
+                </defs>
+
+                <!-- Silhouette de Madagascar -->
+                <path d="M200 30 
+                         C160 35, 120 60, 100 100 
+                         C80 140, 70 180, 75 220 
+                         C80 260, 100 290, 120 310 
+                         C140 330, 160 350, 180 380 
+                         C200 410, 210 440, 220 460 
+                         C230 440, 250 410, 270 380 
+                         C290 350, 310 330, 330 310 
+                         C350 290, 370 260, 375 220 
+                         C380 180, 370 140, 350 100 
+                         C330 60, 290 35, 250 30 
+                         C230 28, 210 28, 200 30Z" 
+                      fill="rgba(30, 58, 95, 0.4)" 
+                      stroke="#3b82f6" 
+                      stroke-width="2" 
+                      opacity="0.8"/>
+
+                <!-- Glow autour de l'île -->
+                <path d="M200 30 
+                         C160 35, 120 60, 100 100 
+                         C80 140, 70 180, 75 220 
+                         C80 260, 100 290, 120 310 
+                         C140 330, 160 350, 180 380 
+                         C200 410, 210 440, 220 460 
+                         C230 440, 250 410, 270 380 
+                         C290 350, 310 330, 330 310 
+                         C350 290, 370 260, 375 220 
+                         C380 180, 370 140, 350 100 
+                         C330 60, 290 35, 250 30 
+                         C230 28, 210 28, 200 30Z" 
+                      fill="url(#glowBlue)" 
+                      opacity="0.3"/>
+
+                <!-- ===== ROUTES / TRAJETS ===== -->
+                
+                <!-- Antananarivo → Toamasina (215 km) -->
+                <line x1="200" y1="200" x2="280" y2="170" 
+                      stroke="#22c55e" stroke-width="2.5" 
+                      class="route-line" opacity="0.8"/>
+                <text x="235" y="180" fill="#22c55e" font-size="7" stroke="none" opacity="0.7">215 km</text>
+
+                <!-- Antananarivo → Mahajanga (570 km) -->
+                <line x1="200" y1="200" x2="130" y2="100" 
+                      stroke="#3b82f6" stroke-width="2.5" 
+                      class="route-line" opacity="0.8"/>
+                <text x="155" y="140" fill="#3b82f6" font-size="7" stroke="none" opacity="0.7">570 km</text>
+
+                <!-- Antananarivo → Toliara (935 km) -->
+                <line x1="200" y1="200" x2="140" y2="370" 
+                      stroke="#8b5cf6" stroke-width="2.5" 
+                      class="route-line" opacity="0.8"/>
+                <text x="160" y="290" fill="#8b5cf6" font-size="7" stroke="none" opacity="0.7">935 km</text>
+
+                <!-- Antananarivo → Antsiranana (1075 km) -->
+                <line x1="200" y1="200" x2="220" y2="50" 
+                      stroke="#facc15" stroke-width="2.5" 
+                      class="route-line" opacity="0.8"/>
+                <text x="215" y="115" fill="#facc15" font-size="7" stroke="none" opacity="0.7">1075 km</text>
+
+                <!-- Antananarivo → Fianarantsoa (415 km) -->
+                <line x1="200" y1="200" x2="170" y2="310" 
+                      stroke="#f472b6" stroke-width="2" 
+                      class="route-line" opacity="0.6"/>
+                <text x="180" y="255" fill="#f472b6" font-size="7" stroke="none" opacity="0.7">415 km</text>
+
+                <!-- ===== VILLES / PROVINCES ===== -->
+                
+                <!-- Antananarivo (Capitale) -->
+                <circle cx="200" cy="200" r="8" fill="#facc15" class="city-dot"/>
+                <circle cx="200" cy="200" r="14" fill="url(#glowYellow)" opacity="0.5"/>
+                <text x="210" y="195" class="city-label highlight">Antananarivo</text>
+                <text x="210" y="205" fill="#94a3b8" font-size="7" stroke="none">⭐ Capitale</text>
+
+                <!-- Toamasina -->
+                <circle cx="280" cy="170" r="5" fill="#22c55e" class="city-dot"/>
+                <circle cx="280" cy="170" r="10" fill="url(#glowGreen)" opacity="0.4"/>
+                <text x="288" y="175" class="city-label">Toamasina</text>
+
+                <!-- Mahajanga -->
+                <circle cx="130" cy="100" r="5" fill="#3b82f6" class="city-dot"/>
+                <circle cx="130" cy="100" r="10" fill="url(#glowBlue)" opacity="0.4"/>
+                <text x="105" y="95" class="city-label">Mahajanga</text>
+
+                <!-- Toliara -->
+                <circle cx="140" cy="370" r="5" fill="#8b5cf6" class="city-dot"/>
+                <circle cx="140" cy="370" r="10" fill="url(#glowPurple)" opacity="0.4"/>
+                <text x="115" y="390" class="city-label">Toliara</text>
+
+                <!-- Antsiranana -->
+                <circle cx="220" cy="50" r="5" fill="#facc15" class="city-dot"/>
+                <circle cx="220" cy="50" r="10" fill="url(#glowYellow)" opacity="0.4"/>
+                <text x="228" y="55" class="city-label">Antsiranana</text>
+
+                <!-- Fianarantsoa -->
+                <circle cx="170" cy="310" r="4" fill="#f472b6" class="city-dot"/>
+                <circle cx="170" cy="310" r="8" fill="url(#glowPurple)" opacity="0.3"/>
+                <text x="145" y="318" class="city-label">Fianarantsoa</text>
+
+                <!-- Antsirabe -->
+                <circle cx="185" cy="240" r="3" fill="#14b8a6" class="city-dot"/>
+                <text x="165" y="245" class="city-label">Antsirabe</text>
+
+                <!-- Morondava -->
+                <circle cx="110" cy="280" r="3" fill="#f59e0b" class="city-dot"/>
+                <text x="85" y="285" class="city-label">Morondava</text>
+
+                <!-- Marqueur de bus animé sur Antananarivo -->
+                <text x="195" y="185" font-size="16" stroke="none">🚌</text>
+
+                <!-- Icônes de transport sur les villes -->
+                <text x="275" y="158" font-size="12" stroke="none">🚗</text>
+                <text x="122" y="88" font-size="12" stroke="none">🚐</text>
+                <text x="132" y="358" font-size="12" stroke="none">🚙</text>
+                <text x="215" y="38" font-size="12" stroke="none">✈️</text>
+
+                <!-- Étiquette VoyageReserv -->
+                <text x="200" y="490" fill="rgba(255,255,255,0.15)" font-size="16" font-weight="bold" stroke="none" text-anchor="middle">
+                    VoyageReserv
+                </text>
+            </svg>
+
+            <!-- Légende -->
+            <div class="map-legend">
+                <span class="legend-item">
+                    <span class="legend-dot yellow"></span> Antananarivo
+                </span>
+                <span class="legend-item">
+                    <span class="legend-line green"></span> Tana → Toamasina
+                </span>
+                <span class="legend-item">
+                    <span class="legend-line blue"></span> Tana → Mahajanga
+                </span>
+                <span class="legend-item">
+                    <span class="legend-line purple"></span> Tana → Toliara
+                </span>
+                <span class="legend-item">
+                    <span class="legend-line yellow"></span> Tana → Antsiranana
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const role = document.getElementById('role').value;
+        const errorDiv = document.getElementById('errorMsg');
+
+        errorDiv.textContent = '';
+        errorDiv.className = 'error-message';
+
+        if (!email || !password) {
+            errorDiv.textContent = 'Veuillez remplir tous les champs.';
+            errorDiv.style.color = '#ef4444';
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.token) {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                localStorage.setItem('userRole', data.user.role || role);
+                localStorage.setItem('userName', data.user.name || 'Utilisateur');
+                localStorage.setItem('userEmail', data.user.email || email);
+                
+                // Redirection selon le rôle
+                if (data.user.role === 'admin') {
+                    window.location.href = 'dashboard.html';
+                } else {
+                    window.location.href = 'trips.html';
+                }
+            } else {
+                errorDiv.textContent = data.error || 'Email ou mot de passe incorrect.';
+                errorDiv.style.color = '#ef4444';
+            }
+        } catch (err) {
+            errorDiv.textContent = 'Erreur réseau. Vérifiez le serveur.';
+            errorDiv.style.color = '#ef4444';
+            console.error('Erreur:', err);
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des voyages - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: #f5f7fb;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto;
+        }
+        .navbar {
+            background: #1e2a3a;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .btn-outline-light {
+            border-width: 1.5px;
+        }
+        .card-header-custom {
+            background: white;
+            border-radius: 28px 28px 0 0;
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .table-custom {
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+        }
+        .table-custom th {
+            background-color: #f8fafc;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+            border-bottom-width: 1px;
+            color: #334155;
+        }
+        .table-custom td {
+            vertical-align: middle;
+            padding: 0.9rem;
+        }
+        .btn-action {
+            border-radius: 30px;
+            padding: 5px 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: 0.2s;
+            margin: 0 2px;
+        }
+        .btn-warning {
+            background-color: #ffc107;
+            border: none;
+            color: #1e2a3a;
+        }
+        .btn-danger {
+            background: linear-gradient(95deg, #dc3545, #b02a37);
+            border: none;
+        }
+        .btn-success {
+            background: linear-gradient(95deg, #198754, #157347);
+            border: none;
+            border-radius: 40px;
+            padding: 10px 24px;
+            font-weight: 600;
+        }
+        .modal-content {
+            border-radius: 28px;
+            border: none;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.2);
+        }
+        .modal-header {
+            border-bottom: 1px solid #eef2f6;
+            background: #fefefe;
+            border-radius: 28px 28px 0 0;
+            padding: 1.2rem 1.8rem;
+        }
+        .form-control, .form-select {
+            border-radius: 18px;
+            padding: 10px 16px;
+            border: 1px solid #e2e8f0;
+            transition: 0.2s;
+        }
+        .form-control:focus {
+            box-shadow: 0 0 0 3px rgba(13,110,253,0.15);
+            border-color: #0d6efd;
+        }
+        .footer-btn {
+            text-align: right;
+            padding: 1rem 1.8rem 1.5rem;
+            background: #fefefe;
+            border-top: 1px solid #eef2f6;
+        }
+        @media (max-width: 768px) {
+            .table-custom {
+                font-size: 0.85rem;
+            }
+            .btn-action {
+                padding: 4px 10px;
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/admin/dashboard">
+                <i class="fas fa-route"></i> Admin Voyages
+            </a>
+            <div>
+                <a href="/admin/dashboard" class="btn btn-outline-light btn-sm rounded-pill me-2">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="/" class="btn btn-outline-light btn-sm rounded-pill">
+                    <i class="fas fa-home"></i> Site
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+            <div>
+                <h2 class="fw-bold mb-1"><i class="fas fa-bus-alt text-primary me-2"></i>Gestion des voyages</h2>
+                <p class="text-muted">Créer, modifier ou supprimer les trajets proposés aux clients</p>
+            </div>
+            <button class="btn btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#tripModal" onclick="openAddModal()">
+                <i class="fas fa-plus-circle me-2"></i>Nouveau voyage
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-custom table-hover align-middle" id="tripsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Départ</th>
+                        <th>Destination</th>
+                        <th>Date départ</th>
+                        <th>Prix</th>
+                        <th>Places</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tripsTableBody">
+                    <tr><td colspan="7" class="text-center py-4">Chargement...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal modernisé -->
+    <div class="modal fade" id="tripModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-map-marked-alt me-2"></i><span id="modalTitle">Ajouter un voyage</span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="tripForm">
+                    <div class="modal-body" style="padding: 1.5rem 1.8rem;">
+                        <input type="hidden" id="tripId">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Départ</label>
+                            <input type="text" id="departure" class="form-control" placeholder="Ex: Paris" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Destination</label>
+                            <input type="text" id="destination" class="form-control" placeholder="Ex: Lyon" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Départ (date/heure)</label>
+                                <input type="datetime-local" id="departure_time" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Arrivée</label>
+                                <input type="datetime-local" id="arrival_time" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Total sièges</label>
+                                <input type="number" id="total_seats" class="form-control" value="48" min="1" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Prix (€)</label>
+                                <input type="number" step="0.01" id="price" class="form-control" placeholder="45.00" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="footer-btn">
+                        <button type="button" class="btn btn-secondary rounded-pill px-4 me-2" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-sm">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentModal = null;
+
+        async function loadTrips() {
+            try {
+                const res = await fetch('/api/admin/trips');
+                if (res.status === 403) {
+                    window.location.href = '/login';
+                    return;
+                }
+                if (!res.ok) throw new Error('Erreur chargement');
+                const trips = await res.json();
+                const tbody = document.getElementById('tripsTableBody');
+                if (trips.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">Aucun voyage trouvé</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = trips.map(trip => `
+                    <tr>
+                        <td class="fw-bold">${trip.id}</td>
+                        <td><i class="fas fa-location-dot text-danger me-1"></i>${escapeHtml(trip.departure)}</td>
+                        <td><i class="fas fa-flag-checkered text-success me-1"></i>${escapeHtml(trip.destination)}</td>
+                        <td>${formatDateTime(trip.departure_time)}</td>
+                        <td><span class="badge bg-success rounded-pill">${trip.price} €</span></td>
+                        <td><span class="badge bg-secondary rounded-pill">${trip.total_seats}</span></td>
+                        <td>
+                            <button class="btn btn-warning btn-action" onclick="editTrip(${trip.id})"><i class="fas fa-pen"></i> Modifier</button>
+                            <button class="btn btn-danger btn-action" onclick="deleteTrip(${trip.id})"><i class="fas fa-trash-can"></i> Supprimer</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+                document.getElementById('tripsTableBody').innerHTML = '<tr><td colspan="7" class="text-center text-danger">Erreur de chargement</td></tr>';
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        function formatDateTime(dateString) {
+            if (!dateString) return '';
+            const d = new Date(dateString);
+            return d.toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+        }
+
+        window.editTrip = async (id) => {
+            try {
+                const res = await fetch('/api/admin/trips');
+                const trips = await res.json();
+                const trip = trips.find(t => t.id == id);
+                if (!trip) return;
+                document.getElementById('tripId').value = trip.id;
+                document.getElementById('departure').value = trip.departure;
+                document.getElementById('destination').value = trip.destination;
+                document.getElementById('departure_time').value = trip.departure_time.slice(0,16);
+                document.getElementById('arrival_time').value = trip.arrival_time.slice(0,16);
+                document.getElementById('total_seats').value = trip.total_seats;
+                document.getElementById('price').value = trip.price;
+                document.getElementById('modalTitle').innerText = 'Modifier le voyage';
+                currentModal = new bootstrap.Modal(document.getElementById('tripModal'));
+                currentModal.show();
+            } catch(err) {
+                alert('Erreur lors du chargement du voyage');
+            }
+        };
+
+        window.deleteTrip = async (id) => {
+            if (confirm('⚠️ Supprimer ce voyage définitivement ? Les réservations associées seront aussi supprimées.')) {
+                try {
+                    const res = await fetch(`/api/admin/trips/${id}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        loadTrips();
+                    } else {
+                        const err = await res.json();
+                        alert(err.error || 'Suppression impossible');
+                    }
+                } catch(e) {
+                    alert('Erreur réseau');
+                }
+            }
+        };
+
+        function openAddModal() {
+            document.getElementById('tripForm').reset();
+            document.getElementById('tripId').value = '';
+            document.getElementById('modalTitle').innerText = '➕ Nouveau voyage';
+            // Valeurs par défaut
+            document.getElementById('total_seats').value = 48;
+            const now = new Date();
+            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0,16);
+            document.getElementById('departure_time').value = localDateTime;
+            document.getElementById('arrival_time').value = localDateTime;
+            currentModal = new bootstrap.Modal(document.getElementById('tripModal'));
+            currentModal.show();
+        }
+
+        document.getElementById('tripForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('tripId').value;
+            const data = {
+                departure: document.getElementById('departure').value.trim(),
+                destination: document.getElementById('destination').value.trim(),
+                departure_time: document.getElementById('departure_time').value,
+                arrival_time: document.getElementById('arrival_time').value,
+                total_seats: parseInt(document.getElementById('total_seats').value),
+                price: parseFloat(document.getElementById('price').value)
+            };
+            const url = id ? `/api/admin/trips/${id}` : '/api/admin/trips';
+            const method = id ? 'PUT' : 'POST';
+            try {
+                const res = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    if (currentModal) currentModal.hide();
+                    loadTrips();
+                    document.getElementById('tripForm').reset();
+                } else {
+                    const error = await res.json();
+                    alert('Erreur : ' + (error.error || 'Vérifiez les champs'));
+                }
+            } catch(err) {
+                alert('Erreur de connexion au serveur');
+            }
+        });
+
+        // Vérifier que l'utilisateur est admin (redirection)
+        async function checkAdminAccess() {
+            const res = await fetch('/api/user');
+            if (res.ok) {
+                const user = await res.json();
+                if (user.role !== 'admin') window.location.href = '/';
+            } else {
+                window.location.href = '/login';
+            }
+        }
+
+        checkAdminAccess();
+        loadTrips();
+    </script>
+</body>
+</html>

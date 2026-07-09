@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - VoyageReserv</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #f0f2f8;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #1e2a3a, #0f1722);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 0.8rem 1rem;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.6rem;
+            letter-spacing: -0.5px;
+        }
+        .navbar-brand i {
+            margin-right: 8px;
+            color: #ffc107;
+        }
+        .dashboard-card {
+            background: white;
+            border-radius: 24px;
+            border: none;
+            transition: all 0.25s ease;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 30px rgba(0,0,0,0.1);
+        }
+        .card-icon {
+            font-size: 3rem;
+            opacity: 0.2;
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            transition: opacity 0.3s;
+        }
+        .dashboard-card:hover .card-icon {
+            opacity: 0.3;
+        }
+        .stat-number {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 0.25rem;
+            color: #1e2a3a;
+        }
+        .stat-label {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            color: #6c757d;
+        }
+        .btn-modern {
+            border-radius: 40px;
+            padding: 10px 28px;
+            font-weight: 600;
+            transition: all 0.2s;
+            background: linear-gradient(95deg, #0d6efd, #0a58ca);
+            border: none;
+            box-shadow: 0 4px 8px rgba(13,110,253,0.2);
+        }
+        .btn-modern:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 16px rgba(13,110,253,0.3);
+        }
+        .footer {
+            margin-top: 3rem;
+            text-align: center;
+            padding: 1.5rem;
+            color: #6c757d;
+            font-size: 0.85rem;
+        }
+        .welcome-section {
+            background: linear-gradient(120deg, #ffffff, #f8faff);
+            border-radius: 28px;
+            padding: 1.8rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        hr {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="../admin/dashboard.html">
+                <i class="fas fa-chalkboard-user"></i> AdminPanel
+            </a>
+            <div>
+                <a href="/" class="btn btn-outline-light btn-sm rounded-pill me-2">
+                    <i class="fas fa-globe"></i> Site
+                </a>
+                <a href="#" onclick="logout()" class="btn btn-outline-warning btn-sm rounded-pill">
+                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="welcome-section">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div>
+                    <h3 class="fw-bold"><i class="fas fa-chart-line me-2 text-primary"></i>Tableau de bord</h3>
+                    <p class="text-muted mb-0">Bienvenue dans l'interface d'administration. Gérez les voyages, suivez les réservations.</p>
+                </div>
+                <div class="mt-2 mt-sm-0">
+                    <span class="badge bg-primary rounded-pill px-3 py-2"><i class="fas fa-shield-alt"></i> Accès Admin</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="dashboard-card position-relative p-4">
+                    <div class="card-icon"><i class="fas fa-bus"></i></div>
+                    <div class="stat-number" id="totalTrips">0</div>
+                    <div class="stat-label">Voyages actifs</div>
+                    <small class="text-muted">Trajets disponibles</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="dashboard-card position-relative p-4">
+                    <div class="card-icon"><i class="fas fa-ticket-alt"></i></div>
+                    <div class="stat-number" id="totalReservations">0</div>
+                    <div class="stat-label">Réservations</div>
+                    <small class="text-muted">Total confirmées</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="dashboard-card position-relative p-4">
+                    <div class="card-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-number" id="totalUsers">0</div>
+                    <div class="stat-label">Clients inscrits</div>
+                    <small class="text-muted">Utilisateurs (hors admin)</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5 text-center">
+            <a href="/admin/trips.html" class="btn btn-modern btn-lg px-5">
+                <i class="fas fa-edit me-2"></i> Gérer les voyages
+            </a>
+        </div>
+
+        <div class="footer">
+            <hr class="w-25 mx-auto">
+            <i class="fas fa-cog fa-spin me-1"></i> VoyageReserv Administration
+        </div>
+    </div>
+
+    <script>
+        // Fonction de déconnexion
+        async function logout() {
+            await fetch('/api/auth/logout.html');
+            window.location.href = '/';
+        }
+
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/admin/stats');
+                if (res.status === 403) {
+                    window.location.href = '../login.html';
+                    return;
+                }
+                if (!res.ok) throw new Error('Erreur chargement stats');
+                const stats = await res.json();
+                document.getElementById('totalTrips').innerText = stats.totalTrips || 0;
+                document.getElementById('totalReservations').innerText = stats.totalReservations || 0;
+                document.getElementById('totalUsers').innerText = stats.totalUsers || 0;
+            } catch (err) {
+                console.error(err);
+                document.querySelectorAll('.stat-number').forEach(el => el.innerText = '⚠️');
+            }
+        }
+
+        // Vérifier si l'utilisateur est admin (optionnel mais recommandé)
+        async function checkAdmin() {
+            const res = await fetch('/api/user');
+            if (res.ok) {
+                const user = await res.json();
+                if (user.role !== 'admin') {
+                    window.location.href = '/';
+                }
+            } else {
+                window.location.href = '../Public/login.html';
+            }
+        }
+
+        checkAdmin();
+        loadStats();s
+    </script>
+</body>
+</html>

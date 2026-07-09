@@ -1,0 +1,49 @@
+cd "C:\BDDXAMP\htdocs\Gestion voyage"
+echo node_modules/ > .gitignore
+echo .env >> .gitignore
+echo .DS_Store >> .gitignore
+echo *.log >> .gitignore
+echo *.tmp >> .gitignore
+echo dist/ >> .gitignore
+echo build/ >> .gitignore
+# Voir si node_modules est suivi par git
+git ls-files | grep node_modules
+
+# Si oui, le supprimer du suivi
+git rm -r --cached node_modules
+git add .gitignore
+git commit -m "Suppression de node_modules du suivi git"
+git push -u origin main
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+.env.local
+.env.*.local
+
+# Base de données
+*.sqlite
+*.db
+
+# Système
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+logs/
+*.log
+
+# Build
+dist/
+build/

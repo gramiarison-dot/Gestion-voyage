@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription - VoyageReserv</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            padding: 1rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ========== ARRIÈRE-PLAN 3D AVEC ROUTES ========== */
+        .background-3d {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0a1628 0%, #1a3a4a 30%, #2d5a6d 60%, #1a3a4a 80%, #0a1628 100%);
+        }
+
+        /* Effet de route 3D - perspective */
+        .road-3d {
+            position: absolute;
+            bottom: -10%;
+            left: -20%;
+            width: 140%;
+            height: 80%;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 40px,
+                rgba(255, 255, 255, 0.05) 40px,
+                rgba(255, 255, 255, 0.05) 42px
+            );
+            transform: perspective(800px) rotateX(65deg);
+            transform-origin: bottom center;
+            animation: roadMove 8s linear infinite;
+        }
+
+        .road-3d::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 60px,
+                rgba(255, 255, 255, 0.08) 60px,
+                rgba(255, 255, 255, 0.08) 62px
+            );
+            transform: perspective(800px) rotateX(65deg);
+            transform-origin: bottom center;
+        }
+
+        /* Lignes de route latérales */
+        .road-line {
+            position: absolute;
+            bottom: 0;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(to top, rgba(255, 255, 255, 0.3), transparent);
+            transform: perspective(800px) rotateX(65deg);
+            transform-origin: bottom center;
+        }
+
+        .road-line:nth-child(1) { left: 15%; }
+        .road-line:nth-child(2) { left: 30%; }
+        .road-line:nth-child(3) { left: 50%; }
+        .road-line:nth-child(4) { left: 70%; }
+        .road-line:nth-child(5) { left: 85%; }
+
+        @keyframes roadMove {
+            0% { transform: perspective(800px) rotateX(65deg) translateY(0); }
+            100% { transform: perspective(800px) rotateX(65deg) translateY(60px); }
+        }
+
+        /* Voitures animées sur la route 3D */
+        .car-3d {
+            position: absolute;
+            font-size: 2.5rem;
+            color: rgba(255, 255, 255, 0.3);
+            animation: carDrive 12s linear infinite;
+            transform: perspective(800px) rotateX(65deg);
+            transform-origin: bottom center;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        .car-3d:nth-child(1) { 
+            left: 20%; 
+            animation-delay: 0s;
+            font-size: 2rem;
+        }
+        .car-3d:nth-child(2) { 
+            left: 45%; 
+            animation-delay: -4s;
+            font-size: 3rem;
+            color: rgba(255, 200, 50, 0.25);
+        }
+        .car-3d:nth-child(3) { 
+            left: 70%; 
+            animation-delay: -8s;
+            font-size: 2.2rem;
+            color: rgba(50, 200, 255, 0.25);
+        }
+
+        @keyframes carDrive {
+            0% { transform: perspective(800px) rotateX(65deg) translateY(100vh) scale(1); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: perspective(800px) rotateX(65deg) translateY(-20vh) scale(0.5); opacity: 0; }
+        }
+
+        /* Arbres et paysage 3D */
+        .landscape {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: 
+                radial-gradient(ellipse at 20% 100%, rgba(34, 197, 94, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 100%, rgba(34, 197, 94, 0.10) 0%, transparent 50%);
+            transform: perspective(800px) rotateX(65deg);
+            transform-origin: bottom center;
+        }
+
+        /* Arbres stylisés */
+        .tree {
+            position: absolute;
+            bottom: 0;
+            font-size: 2rem;
+            opacity: 0.15;
+            transform: perspective(800px) rotateX(65deg);
+            transform-origin: bottom center;
+        }
+        .tree:nth-child(1) { left: 5%; font-size: 3rem; }
+        .tree:nth-child(2) { left: 12%; font-size: 2rem; }
+        .tree:nth-child(3) { right: 8%; font-size: 3.5rem; }
+        .tree:nth-child(4) { right: 18%; font-size: 2.2rem; }
+
+        /* Montagnes en arrière-plan */
+        .mountain {
+            position: absolute;
+            bottom: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            opacity: 0.06;
+        }
+        .mountain:nth-child(1) {
+            left: 0;
+            border-width: 0 200px 300px 200px;
+            border-color: transparent transparent #ffffff transparent;
+        }
+        .mountain:nth-child(2) {
+            right: 0;
+            border-width: 0 250px 350px 250px;
+            border-color: transparent transparent #ffffff transparent;
+        }
+        .mountain:nth-child(3) {
+            left: 30%;
+            border-width: 0 150px 200px 150px;
+            border-color: transparent transparent rgba(255,255,255,0.8) transparent;
+        }
+
+        /* Étoiles / particules */
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #eee, transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+                radial-gradient(2px 2px at 50px 160px, #ddd, transparent),
+                radial-gradient(2px 2px at 90px 40px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(2px 2px at 130px 80px, #fff, transparent),
+                radial-gradient(2px 2px at 160px 30px, rgba(255,255,255,0.7), transparent);
+            background-size: 200px 200px;
+            animation: twinkle 3s ease-in-out infinite alternate;
+            opacity: 0.3;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.2; }
+            100% { opacity: 0.6; }
+        }
+
+        /* ========== CARTE D'INSCRIPTION ========== */
+        .card-modern {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            box-shadow: 0 25px 45px -12px rgba(0,0,0,0.4), 
+                        0 0 0 1px rgba(255,255,255,0.1);
+            overflow: hidden;
+            transition: transform 0.3s;
+            width: 100%;
+            max-width: 550px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .card-modern:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header-glow {
+            background: linear-gradient(120deg, #11998e, #0e6b5e);
+            padding: 1.2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header-glow::before {
+            content: '🚗';
+            position: absolute;
+            right: -20px;
+            top: -20px;
+            font-size: 8rem;
+            opacity: 0.1;
+            transform: rotate(-15deg);
+        }
+
+        .card-header-glow h2 {
+            color: white;
+            font-weight: 700;
+            margin: 0;
+            font-size: 1.8rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .card-header-glow p {
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 0;
+            font-size: 0.9rem;
+        }
+
+        .input-group-custom {
+            position: relative;
+            margin-bottom: 1.2rem;
+        }
+
+        .input-group-custom i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #adb5bd;
+            z-index: 10;
+            font-size: 1.1rem;
+        }
+
+        .form-control-modern, .form-select-modern {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border-radius: 50px !important;
+            border: 1px solid #e2e8f0;
+            font-size: 1rem;
+            transition: all 0.2s;
+            background: #f8fafc;
+            appearance: none;
+        }
+
+        .form-select-modern {
+            padding-right: 35px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%236c757d' stroke-width='1.5' d='M2 5l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 16px;
+        }
+
+        .form-control-modern:focus, .form-select-modern:focus {
+            border-color: #11998e;
+            box-shadow: 0 0 0 4px rgba(17,153,142,0.2);
+            outline: none;
+            background: white;
+        }
+
+        .btn-gradient {
+            background: linear-gradient(95deg, #11998e, #0a7c6b);
+            border: none;
+            border-radius: 50px;
+            padding: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.2s;
+            color: white;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-gradient::after {
+            content: '→';
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            transition: 0.3s;
+        }
+
+        .btn-gradient:hover {
+            transform: scale(0.98);
+            box-shadow: 0 8px 20px rgba(17,153,142,0.4);
+            background: linear-gradient(95deg, #0e8578, #086b5d);
+            padding-right: 35px;
+        }
+
+        .footer-links a {
+            text-decoration: none;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+            color: #11998e !important;
+        }
+
+        .alert-custom {
+            border-radius: 60px;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+
+        .small-info {
+            font-size: 0.7rem;
+            color: #6c757d;
+            margin-top: 5px;
+            margin-left: 10px;
+        }
+
+        @media (max-width: 480px) {
+            .card-modern { margin: 0 10px; }
+            .car-3d { display: none; }
+            .road-line { display: none; }
+        }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #11998e;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- ========== ARRIÈRE-PLAN 3D AVEC ROUTES ========== -->
+    <div class="background-3d">
+        <!-- Étoiles -->
+        <div class="stars"></div>
+        
+        <!-- Montagnes -->
+        <div class="mountain"></div>
+        <div class="mountain"></div>
+        <div class="mountain"></div>
+        
+        <!-- Arbres -->
+        <div class="tree">🌴</div>
+        <div class="tree">🌳</div>
+        <div class="tree">🌴</div>
+        <div class="tree">🌳</div>
+        
+        <!-- Paysage -->
+        <div class="landscape"></div>
+        
+        <!-- Routes 3D -->
+        <div class="road-3d"></div>
+        
+        <!-- Lignes de route -->
+        <div class="road-line"></div>
+        <div class="road-line"></div>
+        <div class="road-line"></div>
+        <div class="road-line"></div>
+        <div class="road-line"></div>
+        
+        <!-- Voitures animées -->
+        <div class="car-3d">🚗</div>
+        <div class="car-3d">🚐</div>
+        <div class="car-3d">🚙</div>
+    </div>
+
+    <!-- ========== CARTE D'INSCRIPTION ========== -->
+    <div class="container" style="max-width: 550px;">
+        <div class="card-modern">
+            <div class="card-header-glow">
+                <h2><i class="fas fa-user-plus me-2"></i>Rejoignez-nous</h2>
+                <p class="text-white-50 mb-0 small">Créez votre compte et partez à l'aventure</p>
+            </div>
+            <div class="card-body p-4">
+                <form id="registerForm">
+                    <div class="input-group-custom">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="name" class="form-control form-control-modern" placeholder="Nom complet" required>
+                    </div>
+                    <div class="input-group-custom">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="email" class="form-control form-control-modern" placeholder="Email" required>
+                    </div>
+                    <div class="input-group-custom">
+                        <i class="fas fa-key"></i>
+                        <input type="password" id="password" class="form-control form-control-modern" placeholder="Mot de passe (min 6 caractères)" required minlength="6">
+                    </div>
+                    <div class="input-group-custom">
+                        <i class="fas fa-tag"></i>
+                        <select id="role" class="form-select form-select-modern" required>
+                            <option value="client">👤 Client</option>
+                            <option value="admin">🛠️ Administrateur</option>
+                        </select>
+                    </div>
+                    <div class="small-info">
+                        <i class="fas fa-info-circle"></i> Seul un admin existant peut créer un autre admin normalement.
+                    </div>
+                    <button type="submit" class="btn-gradient mt-3" id="submitBtn">
+                        S'inscrire <i class="fas fa-check-circle ms-2"></i>
+                    </button>
+                    <div id="spinner" class="spinner"></div>
+                    <div class="footer-links text-center mt-4">
+                        <a href="login.html" class="text-success">Déjà un compte ? Connectez-vous</a>
+                        <span class="mx-2 text-muted">|</span>
+                        <a href="index.html" class="text-success">Accueil</a>
+                    </div>
+                </form>
+                <div id="msg" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+            const msgDiv = document.getElementById('msg');
+            const submitBtn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('spinner');
+            
+            msgDiv.innerHTML = '';
+            
+            if (!name || !email || !password) {
+                msgDiv.innerHTML = `<div class="alert alert-danger alert-custom">⚠️ Tous les champs sont obligatoires</div>`;
+                return;
+            }
+            
+            if (password.length < 6) {
+                msgDiv.innerHTML = `<div class="alert alert-danger alert-custom">⚠️ Le mot de passe doit faire au moins 6 caractères</div>`;
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Inscription en cours...';
+            spinner.style.display = 'block';
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password, role })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok && data.success) {
+                    msgDiv.innerHTML = `
+                        <div class="alert alert-success alert-custom">
+                            ✅ Inscription réussie ! <a href="login.html" class="alert-link">Connectez-vous</a>
+                        </div>
+                    `;
+                    document.getElementById('registerForm').reset();
+                } else {
+                    msgDiv.innerHTML = `<div class="alert alert-danger alert-custom">❌ ${data.error || 'Erreur lors de l\'inscription'}</div>`;
+                }
+            } catch (err) {
+                console.error('Erreur:', err);
+                msgDiv.innerHTML = '<div class="alert alert-danger alert-custom">❌ Erreur réseau. Vérifiez la console (F12).</div>';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'S\'inscrire <i class="fas fa-check-circle ms-2"></i>';
+                spinner.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

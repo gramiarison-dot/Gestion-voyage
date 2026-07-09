@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon historique - VoyageReserv</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #f1f5f9;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #1e293b, #0f172a) !important;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            padding: 0.8rem 0;
+        }
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.6rem;
+            color: white !important;
+        }
+        .navbar-brand i {
+            margin-right: 8px;
+            color: #facc15;
+        }
+        .container-custom {
+            max-width: 1300px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+        .page-header {
+            background: white;
+            border-radius: 28px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .page-header h2 {
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+        }
+        .badge-count {
+            background: #e2e8f0;
+            color: #1e293b;
+            padding: 0.5rem 1rem;
+            border-radius: 60px;
+            font-weight: 500;
+        }
+        .table-modern {
+            background: white;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .table-modern th {
+            background: #f8fafc;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .table-modern td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .table-modern tr:last-child td {
+            border-bottom: none;
+        }
+        .table-modern tr:hover {
+            background: #fefce8;
+            transition: 0.1s;
+        }
+        .seat-badge {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 0.2rem 0.6rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-block;
+            margin: 2px;
+        }
+        .status-confirmed {
+            background: #d1fae5;
+            color: #065f46;
+            border-radius: 60px;
+            padding: 0.3rem 1rem;
+            font-weight: 600;
+            font-size: 0.8rem;
+            display: inline-block;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 28px;
+        }
+        .empty-state i {
+            font-size: 4rem;
+            color: #cbd5e1;
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 768px) {
+            .table-modern thead { display: none; }
+            .table-modern, .table-modern tbody, .table-modern tr, .table-modern td {
+                display: block;
+                width: 100%;
+            }
+            .table-modern tr {
+                margin-bottom: 1rem;
+                border-radius: 20px;
+                background: white;
+                box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+            }
+            .table-modern td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.8rem 1rem;
+                border-bottom: 1px solid #eef2ff;
+            }
+            .table-modern td::before {
+                content: attr(data-label);
+                font-weight: 700;
+                width: 40%;
+                color: #475569;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-bus-alt"></i> VoyageReserv
+            </a>
+            <a href="/" class="btn btn-outline-light btn-sm rounded-pill">
+                <i class="fas fa-home"></i> Accueil
+            </a>
+        </div>
+    </nav>
+
+    <div class="container-custom">
+        <div class="page-header">
+            <h2><i class="fas fa-clock-rotate-left text-primary me-2"></i> Mon historique de réservations</h2>
+            <span class="badge-count" id="reservationCount">0 réservation(s)</span>
+        </div>
+
+        <div id="historyContent">
+            <!-- le contenu sera chargé ici -->
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2">Chargement de votre historique...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadHistory() {
+            const container = document.getElementById('historyContent');
+            try {
+                const res = await fetch('/api/reservations');
+                if (res.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+                if (!res.ok) throw new Error();
+                const reservations = await res.json();
+                const countSpan = document.getElementById('reservationCount');
+                countSpan.innerText = `${reservations.length} réservation${reservations.length > 1 ? 's' : ''}`;
+
+                if (reservations.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-receipt"></i>
+                            <h4>Aucune réservation trouvée</h4>
+                            <p>Vous n'avez encore effectué aucune réservation.</p>
+                            <a href="/" class="btn btn-primary rounded-pill px-4"><i class="fas fa-search"></i> Découvrir des voyages</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Construire le tableau
+                let tableHtml = `
+                    <div class="table-responsive">
+                        <table class="table table-modern">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Trajet</th>
+                                    <th>Date de départ</th>
+                                    <th>Sièges</th>
+                                    <th>Prix total</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                for (const r of reservations) {
+                    const seatsArray = r.seats ? r.seats.split(',') : [];
+                    const seatsHtml = seatsArray.map(s => `<span class="seat-badge">Siège ${s}</span>`).join(' ');
+                    const departureDate = new Date(r.departure_time).toLocaleString('fr-FR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+                    tableHtml += `
+                        <tr>
+                            <td data-label="ID">#${r.id}</td>
+                            <td data-label="Trajet"><strong>${escapeHtml(r.departure)} → ${escapeHtml(r.destination)}</strong></td>
+                            <td data-label="Date">${departureDate}</td>
+                            <td data-label="Sièges">${seatsHtml || '-'}</td>
+                            <td data-label="Prix">${parseFloat(r.total_price).toFixed(2)} €</td>
+                            <td data-label="Statut"><span class="status-confirmed">${r.status === 'confirmed' ? 'Confirmé' : 'Annulé'}</span></td>
+                        </tr>
+                    `;
+                }
+                tableHtml += `</tbody></table></div>`;
+                container.innerHTML = tableHtml;
+            } catch (err) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle text-danger"></i>
+                        <h4>Erreur de chargement</h4>
+                        <p>Impossible de récupérer votre historique. Veuillez réessayer plus tard.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : (m === '<' ? '&lt;' : '&gt;'));
+        }
+
+        loadHistory();
+    </script>
+</body>
+</html>
