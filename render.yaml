@@ -1,24 +1,24 @@
 services:
   - type: web
-    name: Gestion-voyage-backend
+    name: gestion-voyage-api
     runtime: node
     plan: free
-    buildCommand: cd backend && npm install
-    startCommand: cd backend && node server.js
+    buildCommand: npm install
+    startCommand: node server.js
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
       - key: DB_HOST
-        value: ${DATABASE_HOST}
+        value: us-cdbr-east-05.cleardb.net
       - key: DB_USER
-        value: ${DATABASE_USER}
+        value: ${DB_USER}
       - key: DB_PASSWORD
-        value: ${DATABASE_PASSWORD}
+        value: ${DB_PASSWORD}
       - key: DB_NAME
-        value: ${DATABASE_NAME}
+        value: ${DB_NAME}
       - key: DB_PORT
-        value: ${DATABASE_PORT}
+        value: 3306
       - key: JWT_SECRET
         generateValue: true
