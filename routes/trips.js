@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
-const { authenticate, isAdmin } = require('../middleware/auth');  // ← Garder ces noms
+const { authenticate, isAdmin } = require('../Middleware/auth');  // ← Garder ces noms
 
 // GET /api/trips - liste de tous les voyages
 router.get('/', async (req, res) => {
