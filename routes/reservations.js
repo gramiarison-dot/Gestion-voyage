@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
-const { authenticate, isAdmin } = require('../middleware/auth');
+const { authenticate, isAdmin } = require('../Middleware/auth');
 
 // GET /api/reservations - Liste des réservations
 router.get('/', authenticate, async (req, res) => {
