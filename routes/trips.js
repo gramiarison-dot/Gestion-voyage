@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
-const { authenticate, isAdmin } = require('../middleware/auth');
+const { authenticate, isAdmin } = require('../middleware/auth');  // ← Garder ces noms
 
 // GET /api/trips - liste de tous les voyages
 router.get('/', async (req, res) => {
@@ -59,7 +59,7 @@ router.post('/', authenticate, isAdmin, async (req, res) => {
             arrival_time || null,
             total_seats,
             price,
-            total_seats, // available_seats = total_seats par défaut
+            total_seats,
             description || null,
             driver_name || null,
             driver_contact || null
@@ -100,7 +100,7 @@ router.put('/:id', authenticate, isAdmin, async (req, res) => {
             arrival_time || null,
             total_seats,
             price,
-            total_seats, // available_seats
+            total_seats,
             description || null,
             driver_name || null,
             driver_contact || null,
@@ -119,7 +119,6 @@ router.put('/:id', authenticate, isAdmin, async (req, res) => {
 // DELETE /api/trips/:id - supprimer un voyage (admin)
 router.delete('/:id', authenticate, isAdmin, async (req, res) => {
     try {
-        // Vérifier si des réservations existent
         const [reservations] = await db.pool.query(
             'SELECT COUNT(*) as count FROM reservations WHERE trip_id = ?',
             [req.params.id]
